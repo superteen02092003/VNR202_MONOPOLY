@@ -1,6 +1,6 @@
 import { getOwnedTileIds, getPropertyState } from './board'
 import { formatMoney, normalizeAmount } from './money'
-import { pushLog } from './log'
+import { pushEvent, pushLog } from './log'
 import { getPlayer } from './players'
 import {
   getLiquidationValue,
@@ -137,6 +137,8 @@ export function declareBankruptcy(
   const player = getPlayer(state, playerId)
   if (player.status === 'bankrupt') return
 
+  pushEvent(state, 'player-bankrupt', playerId)
+
   const transferred = creditorId
     ? transferAllProperties(state, playerId, creditorId)
     : releaseAllProperties(state, playerId)
@@ -153,14 +155,14 @@ export function declareBankruptcy(
     pushLog(
       state,
       'warning',
-      `💥 ${player.name} PHÁ SẢN! Toàn bộ ${transferred.length} địa danh được bàn giao cho ${creditor.name}.`,
+      `${player.name} PHÁ SẢN! Toàn bộ ${transferred.length} địa danh được bàn giao cho ${creditor.name}.`,
       playerId,
     )
   } else {
     pushLog(
       state,
       'warning',
-      `💥 ${player.name} PHÁ SẢN! Toàn bộ tài sản được thu hồi về ngân hàng.`,
+      `${player.name} PHÁ SẢN! Toàn bộ tài sản được thu hồi về ngân hàng.`,
       playerId,
     )
   }

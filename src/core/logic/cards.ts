@@ -2,7 +2,7 @@ import { GAME_CONFIG } from '../config'
 import { CARD_DEFINITIONS, getCardDefinition } from '../data/cards'
 import { getPropertyState, getPropertyTile, getTile } from './board'
 import { startFestival } from './festival'
-import { pushLog, nextId } from './log'
+import { pushEvent, pushLog, nextId } from './log'
 import { clampDiceTotal, releaseFromJail, teleportPlayer } from './movement'
 import { credit } from './payments'
 import { findPlayer, getPlayer } from './players'
@@ -43,9 +43,10 @@ export function drawCard(state: GameCore, playerId: PlayerId): DrawResult {
   pushLog(
     state,
     'card',
-    `${player.name} rút được thẻ ${definition.emoji} ${definition.name}.`,
+    `${player.name} rút được thẻ ${definition.name}.`,
     playerId,
   )
+  pushEvent(state, 'card-drawn', playerId)
   return { card, bagFull: false }
 }
 
@@ -99,7 +100,7 @@ export function playCard(
   pushLog(
     state,
     'card',
-    `${player.name} sử dụng thẻ ${definition.emoji} ${definition.name}.`,
+    `${player.name} sử dụng thẻ ${definition.name}.`,
     playerId,
   )
   return outcome
@@ -214,7 +215,7 @@ function applyCardEffect(
       pushLog(
         state,
         'card',
-        `🛡️ ${getPropertyTile(target.tileId).name} được bảo hộ, chặn được một lần thâu tóm.`,
+        `${getPropertyTile(target.tileId).name} được bảo hộ, chặn được một lần thâu tóm.`,
         playerId,
       )
       return done()

@@ -137,7 +137,7 @@ export function endMatch(state: GameCore, reason: string): void {
   state.currentQuestion = null
   state.standings = computeStandings(state)
 
-  pushLog(state, 'info', `🏆 Kết thúc ván — ${reason}.`)
+  pushLog(state, 'info', `Kết thúc ván — ${reason}.`)
 
   const champion = state.standings[0]
   if (champion) {

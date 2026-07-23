@@ -5,7 +5,7 @@ import {
   getPropertyTile,
   hasActiveFestival,
 } from './board'
-import { pushLog } from './log'
+import { pushEvent, pushLog } from './log'
 import { getPlayer } from './players'
 import type { GameCore, PlayerId, TileId } from '../types'
 
@@ -40,9 +40,10 @@ export function startFestival(state: GameCore, playerId: PlayerId, tileId: TileI
   pushLog(
     state,
     'success',
-    `🎊 ${player.name} đăng cai Festival tại ${tile.province} — tiền lưu trú nhân đôi ${duration}!`,
+    `${player.name} đăng cai Festival tại ${tile.province} — tiền lưu trú nhân đôi ${duration}!`,
     playerId,
   )
+  pushEvent(state, 'festival-started', playerId, { tileId })
   return true
 }
 

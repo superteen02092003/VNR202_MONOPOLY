@@ -1,7 +1,7 @@
 import { GAME_CONFIG } from '../config'
 import { getTile, normalizeTileId } from './board'
 import { credit } from './payments'
-import { pushLog } from './log'
+import { pushEvent, pushLog } from './log'
 import { getPlayer } from './players'
 import { nextInt } from './random'
 import type { GameCore, PlayerId, TileId } from '../types'
@@ -139,9 +139,10 @@ export function sendToJail(state: GameCore, playerId: PlayerId): void {
   pushLog(
     state,
     'warning',
-    `🚧 ${player.name} mắc kẹt tại ${getTile(GAME_CONFIG.TILE_JAIL).name} — nghỉ ${GAME_CONFIG.JAIL_TURNS} lượt.`,
+    `${player.name} mắc kẹt tại ${getTile(GAME_CONFIG.TILE_JAIL).name} — nghỉ ${GAME_CONFIG.JAIL_TURNS} lượt.`,
     playerId,
   )
+  pushEvent(state, 'player-jailed', playerId, { tileId: GAME_CONFIG.TILE_JAIL })
 }
 
 export function releaseFromJail(state: GameCore, playerId: PlayerId, reason: string): void {

@@ -21,6 +21,7 @@ function newMatch() {
   store().resetGame(20250203)
   const result = store().startGame(SETUPS, { randomizeTurnOrder: false })
   expect(result.ok).toBe(true)
+  expect(store().beginGame().ok).toBe(true)
 }
 
 /** Đưa nhóm đang tới lượt dừng đúng ô mong muốn, bỏ qua ngẫu nhiên của xúc xắc. */
@@ -51,6 +52,27 @@ beforeEach(() => {
 })
 
 describe('Khởi tạo ván', () => {
+  it('chờ Host bấm bắt đầu trước khi mở câu hỏi và chạy đồng hồ', () => {
+    store().resetGame(20250203)
+    const result = store().startGame(SETUPS, { randomizeTurnOrder: false })
+
+    expect(result.ok).toBe(true)
+    expect(store().phase).toBe('turn-end')
+    expect(store().turnCount).toBe(0)
+    expect(store().currentQuestion).toBeNull()
+    expect(store().isTimerRunning).toBe(false)
+
+    store().resumeTimer()
+    expect(store().isTimerRunning).toBe(false)
+
+    expect(store().beginGame().ok).toBe(true)
+    expect(store().phase).toBe('trivia')
+    expect(store().turnCount).toBe(1)
+    expect(store().currentQuestion).not.toBeNull()
+    expect(store().isTimerRunning).toBe(true)
+    expect(store().beginGame().ok).toBe(false)
+  })
+
   it('mở đúng Vòng Hỏi Đáp với đủ nhóm và tiền khởi điểm', () => {
     const state = store()
     expect(state.phase).toBe('trivia')
@@ -80,6 +102,7 @@ describe('Khởi tạo ván', () => {
   it('khi xáo trộn thứ tự đi, nhóm tới lượt lấy theo turnOrder chứ không theo mảng players', () => {
     store().resetGame(20250203)
     store().startGame(SETUPS, { randomizeTurnOrder: true })
+    store().beginGame()
 
     const state = store()
     // Hạt giống này cho ra một thứ tự khác với thứ tự khai báo, đủ để lộ lỗi lập chỉ mục.

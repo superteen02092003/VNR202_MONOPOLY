@@ -46,7 +46,7 @@ export function resolveLanding(state: GameCore, playerId: PlayerId): PendingActi
       pushLog(
         state,
         'success',
-        `✈️ ${player.name} tới Sân bay Quốc tế — lượt sau được bay thẳng tới ô bất kỳ.`,
+        `${player.name} tới Sân bay Quốc tế — lượt sau được bay thẳng tới ô bất kỳ.`,
         playerId,
       )
       return { kind: 'travel' }

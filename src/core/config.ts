@@ -76,6 +76,31 @@ export const GAME_CONFIG = {
 
   /* --- Nhật ký --- */
   MAX_LOG_ENTRIES: 200,
+  /** Hàng đợi sự kiện cho hoạt ảnh 3D — chỉ cần đủ cho vài lượt gần nhất. */
+  MAX_EVENT_ENTRIES: 50,
+} as const
+
+/* ------------------------------------------------------------------ */
+/* Hằng số hình học của bàn cờ 3D (Giai đoạn 2)                        */
+/* ------------------------------------------------------------------ */
+
+export const BOARD_3D = {
+  /** Cạnh của một ô góc (hình vuông). */
+  CORNER_SIZE: 2.4,
+  /** Bề ngang một ô thường (dọc theo cạnh bàn cờ). */
+  TILE_WIDTH: 1.5,
+  /** Bề sâu một ô thường (hướng vào tâm bàn cờ). */
+  TILE_DEPTH: 2.4,
+  /** Độ dày mặt ô. */
+  TILE_HEIGHT: 0.18,
+  /** Số ô thường trên mỗi cạnh (không tính 2 góc). */
+  TILES_PER_SIDE: 7,
+  /** Độ cao đỉnh parabol khi nhân vật nhảy qua một ô. */
+  HOP_HEIGHT: 0.9,
+  /** Thời gian nhảy qua MỘT ô (ms). */
+  HOP_DURATION: 260,
+  /** Bán kính vòng tròn xếp quân cờ khi nhiều nhóm đứng chung một ô. */
+  PAWN_SPREAD: 0.42,
 } as const
 
 export const DEFAULT_SETTINGS: GameSettings = {

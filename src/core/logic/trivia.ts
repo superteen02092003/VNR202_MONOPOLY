@@ -1,6 +1,6 @@
 import { QUESTIONS } from '../data/questions'
 import { drawCard } from './cards'
-import { pushLog } from './log'
+import { pushEvent, pushLog } from './log'
 import { getPlayer } from './players'
 import { pickOne } from './random'
 import type { GameCore, Question } from '../types'
@@ -45,7 +45,7 @@ export function resolveTrivia(state: GameCore, answerIndex: number | null): Triv
   if (correct) {
     player.stats.correctAnswers += 1
     state.triviaResult = 'correct'
-    pushLog(state, 'trivia', `✅ ${player.name} trả lời ĐÚNG — được rút 1 Thẻ Cơ hội.`, playerId)
+    pushLog(state, 'trivia', `${player.name} trả lời ĐÚNG — được rút 1 Thẻ Cơ hội.`, playerId)
   } else {
     player.stats.wrongAnswers += 1
     state.triviaResult = answerIndex === null ? 'timeout' : 'wrong'
@@ -53,10 +53,12 @@ export function resolveTrivia(state: GameCore, answerIndex: number | null): Triv
     pushLog(
       state,
       'trivia',
-      `❌ ${player.name} ${detail}. Đáp án đúng: ${question.options[question.answerIndex]}.`,
+      `${player.name} ${detail}. Đáp án đúng: ${question.options[question.answerIndex]}.`,
       playerId,
     )
   }
+
+  pushEvent(state, correct ? 'trivia-correct' : 'trivia-wrong', playerId)
 
   const cardDrawn = correct ? drawCard(state, playerId).card !== null : false
   return { correct, question, cardDrawn }

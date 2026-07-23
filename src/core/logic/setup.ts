@@ -72,6 +72,7 @@ export function createInitialState(seed: number = createSeed()): GameCore {
     triviaResult: null,
     pendingAction: { kind: 'idle' },
     log: [],
+    events: [],
     timeRemainingMs: DEFAULT_SETTINGS.matchMinutes * 60_000,
     isTimerRunning: false,
     isFinalTurn: false,
@@ -133,6 +134,7 @@ export function startMatch(state: GameCore, options: StartMatchOptions): StartMa
   state.triviaResult = null
   state.pendingAction = { kind: 'idle' }
   state.log = []
+  state.events = []
   state.timeRemainingMs = merged.matchMinutes * 60_000
   state.isTimerRunning = true
   state.isFinalTurn = false
@@ -141,7 +143,7 @@ export function startMatch(state: GameCore, options: StartMatchOptions): StartMa
   pushLog(
     state,
     'info',
-    `🏁 Bắt đầu ván đấu ${merged.matchMinutes} phút với ${state.players.length} nhóm.`,
+    `Bắt đầu ván đấu ${merged.matchMinutes} phút với ${state.players.length} nhóm.`,
   )
   pushLog(
     state,

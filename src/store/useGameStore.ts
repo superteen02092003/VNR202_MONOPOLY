@@ -23,6 +23,7 @@ import {
   getPropertyTile,
   getTile,
   playCard,
+  pushEvent,
   pushLog,
   releaseFromJail,
   resolveLanding,
@@ -52,6 +53,8 @@ export interface GameActions {
   /* --- Sảnh chờ --- */
   updateSettings: (patch: Partial<GameSettings>) => void
   startGame: (setups: PlayerSetup[], options?: { randomizeTurnOrder?: boolean }) => StartMatchResult
+  /** Xác nhận màn sẵn sàng và mở lượt Hỏi Đáp đầu tiên. */
+  beginGame: () => ActionResult
   resetGame: (seed?: number) => void
 
   /* --- Vòng Hỏi Đáp --- */
@@ -120,7 +123,26 @@ export const useGameStore = create<GameStore>()(
           settings: state.settings,
           randomizeTurnOrder: options?.randomizeTurnOrder ?? true,
         })
-        if (result.ok) beginTurn(state)
+        if (result.ok) state.isTimerRunning = false
+      })
+      return result
+    },
+
+    beginGame: () => {
+      let result: ActionResult = ok
+      set((state) => {
+        if (
+          state.phase !== 'turn-end' ||
+          state.turnCount !== 0 ||
+          state.turnOrder.length === 0 ||
+          !getCurrentPlayer(state)
+        ) {
+          result = no('Ván đấu không ở trạng thái chờ bắt đầu.')
+          return
+        }
+
+        beginTurn(state)
+        state.isTimerRunning = true
       })
       return result
     },
@@ -210,7 +232,7 @@ export const useGameStore = create<GameStore>()(
         teleportPlayer(state, player.id, tileId)
 
         const tile = getTile(tileId)
-        pushLog(state, 'success', `✈️ ${player.name} bay thẳng tới ${tile.name}.`, player.id)
+        pushLog(state, 'success', `${player.name} bay thẳng tới ${tile.name}.`, player.id)
 
         state.pendingAction = resolveLanding(state, player.id)
         state.phase = 'action'
@@ -259,7 +281,7 @@ export const useGameStore = create<GameStore>()(
         pushLog(
           state,
           'info',
-          `🎲 ${player.name} đổ được ${state.dice[0]} + ${state.dice[1]} = ${state.dice[0] + state.dice[1]}.`,
+          `${player.name} đổ được ${state.dice[0]} + ${state.dice[1]} = ${state.dice[0] + state.dice[1]}.`,
           player.id,
         )
       })
@@ -306,6 +328,7 @@ export const useGameStore = create<GameStore>()(
         const tile = getTile(move.to)
 
         pushLog(state, 'info', `${player.name} đi ${steps} bước và dừng tại ${tile.name}.`, player.id)
+        pushEvent(state, 'player-moved', player.id, { tileId: move.to })
 
         state.pendingAction = resolveLanding(state, player.id)
         state.phase = 'action'
@@ -369,7 +392,7 @@ export const useGameStore = create<GameStore>()(
           pushLog(
             state,
             'success',
-            `🎫 ${player.name} được miễn phí lưu trú tại ${tile.province}.`,
+            `${player.name} được miễn phí lưu trú tại ${tile.province}.`,
             player.id,
           )
           state.pendingAction = { kind: 'idle' }
@@ -388,6 +411,10 @@ export const useGameStore = create<GameStore>()(
         const owner = state.players.find((p) => p.id === pending.ownerId)
         if (owner) owner.stats.rentCollected += settlement.paid
 
+        pushEvent(state, 'rent-paid', player.id, {
+          tileId: pending.tileId,
+          amount: settlement.paid,
+        })
         state.pendingAction = { kind: 'idle' }
       })
       return result
@@ -581,7 +608,12 @@ export const useGameStore = create<GameStore>()(
 
     resumeTimer: () =>
       set((state) => {
-        if (state.phase !== 'lobby' && state.phase !== 'game-over' && !state.isFinalTurn) {
+        if (
+          state.phase !== 'lobby' &&
+          state.phase !== 'game-over' &&
+          state.turnCount > 0 &&
+          !state.isFinalTurn
+        ) {
           state.isTimerRunning = true
         }
       }),

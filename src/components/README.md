@@ -4,18 +4,22 @@ Toàn bộ giao diện TailwindCSS của Quản trò, render **đè lên** `<Can
 bằng một lớp `absolute inset-0 pointer-events-none`, riêng các panel bật lại
 `pointer-events-auto`.
 
-## Các component dự kiến
+## Các component hiện có
 
 | File                   | Nhiệm vụ                                                                 |
 | ---------------------- | ------------------------------------------------------------------------ |
-| `HostDashboard.tsx`    | Bảng điều khiển chính: Lắc xúc xắc, Xác nhận / Hủy, Dùng thẻ              |
-| `TriviaPanel.tsx`      | Bảng câu hỏi VNR202 trượt xuống + đồng hồ đếm ngược (anime.js)            |
-| `GlobalTimer.tsx`      | Đồng hồ tổng góc trên; 5 phút cuối đổi đỏ và nhấp nháy                    |
-| `PlayerCard.tsx`       | Thẻ thông tin từng nhóm: tiền, vị trí, túi thẻ                            |
-| `CardInventory.tsx`    | Túi đồ tối đa 3 Thẻ Cơ hội, hiệu ứng lật thẻ                              |
-| `ActionPrompt.tsx`     | Hộp thoại theo `pendingAction`: mua / nâng cấp / nộp tiền / thâu tóm      |
-| `LobbyScreen.tsx`      | Sảnh chờ: chọn nhóm, nhân vật, thời lượng ván                             |
-| `ResultScreen.tsx`     | Bảng xếp hạng chung cuộc                                                  |
+| `LobbyScreen.tsx`      | Sảnh chờ: đội hình, nhân vật, thời lượng và luật nâng cao                  |
+| `GameStartOverlay.tsx` | Màn sẵn sàng, thứ tự mở màn và nút bắt đầu đồng hồ/câu hỏi đầu tiên       |
+| `GameHud.tsx`          | Top bar, phase stepper, đồng hồ, player rail và nhật ký ván đấu            |
+| `ActionDock.tsx`       | Trivia, review đáp án, túi thẻ, xúc xắc, mọi pending action và kết quả     |
+| `NoticeCenter.tsx`     | Toast phản hồi không làm gián đoạn luồng chơi                              |
+| `BrandLogo.tsx`        | Logo responsive dùng chung ở Lobby và Host Dashboard                      |
+| `GameIcon.tsx`         | Bộ icon SVG nội bộ, không phụ thuộc thư viện/asset ngoài                   |
+
+`App.tsx` lazy-load `GameCanvas`, vì vậy scene Three.js không nằm trong bundle ban đầu
+của sảnh chờ. UI dùng placeholder nhân vật từ `src/scene/PlaceholderPawn.tsx`; khi file
+`.glb` đúng tên xuất hiện trong `public/models`, scene tự dùng model thật mà không phải
+đổi layout hay component.
 
 ## Nguyên tắc
 

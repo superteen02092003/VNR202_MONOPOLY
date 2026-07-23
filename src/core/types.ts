@@ -1,5 +1,5 @@
 /**
- * VNR202 BUSINESS TOUR - VIETNAM EDITION
+ * VNR202 BUSINESS VOYAGE - VIETNAM EDITION
  * Toàn bộ định nghĩa kiểu dữ liệu của lõi game (không phụ thuộc React / Zustand).
  *
  * Quy ước tiền tệ: mọi con số tiền trong game đều tính theo đơn vị "triệu VNĐ".
@@ -37,9 +37,21 @@ export interface Character {
   modelUrl: string
   /** Màu đại diện của đội — dùng cho quân cờ, nhà cửa và badge trên dashboard. */
   color: string
-  /** Emoji dự phòng khi model 3D chưa được tải. */
-  emoji: string
+  /**
+   * Ghi đè tên clip animation khi bộ dò tự động chọn sai.
+   * Bỏ trống thì `resolveClipName` tự khớp theo tên (idle / jump / celebrate...).
+   */
+  clips?: Partial<Record<CharacterAnimation, string>>
+  /** Hiệu chỉnh model .glb cho khớp bàn cờ: tỉ lệ, hướng quay, độ cao chân. */
+  transform?: {
+    scale?: number
+    rotationY?: number
+    yOffset?: number
+  }
 }
+
+/** Ba trạng thái hoạt ảnh của nhân vật theo GDD. */
+export type CharacterAnimation = 'idle' | 'jump' | 'celebrate'
 
 /* ------------------------------------------------------------------ */
 /* Bàn cờ                                                              */
@@ -148,7 +160,6 @@ export interface CardDefinition {
   effect: CardEffect
   name: string
   description: string
-  emoji: string
   targetKind: CardTargetKind
   /** Trọng số khi bốc thẻ — số càng lớn càng dễ ra. */
   weight: number
@@ -312,6 +323,41 @@ export interface LogEntry {
 }
 
 /* ------------------------------------------------------------------ */
+/* Hàng đợi sự kiện (cho hoạt ảnh 3D & SFX)                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sự kiện xảy ra một lần, để lớp 3D và âm thanh bắt lấy mà diễn hoạt ảnh.
+ * Khác với `log` (dành cho người đọc), đây là tín hiệu dành cho máy.
+ */
+export type GameEventType =
+  | 'property-bought'
+  | 'property-upgraded'
+  /** Nâng lên cấp 4 — nhân vật chạy hoạt ảnh Celebrate. */
+  | 'landmark-built'
+  | 'property-takeover'
+  | 'property-demolished'
+  | 'festival-started'
+  | 'rent-paid'
+  | 'player-moved'
+  | 'player-jailed'
+  | 'player-bankrupt'
+  | 'trivia-correct'
+  | 'trivia-wrong'
+  | 'card-drawn'
+
+export interface GameEvent {
+  id: string
+  /** Số thứ tự tăng dần — lớp 3D dùng để biết sự kiện nào chưa xử lý. */
+  seq: number
+  type: GameEventType
+  playerId: PlayerId | null
+  tileId: TileId | null
+  amount: number | null
+  turn: number
+}
+
+/* ------------------------------------------------------------------ */
 /* Cấu hình & kết quả ván                                              */
 /* ------------------------------------------------------------------ */
 
@@ -377,6 +423,8 @@ export interface GameCore {
   pendingAction: PendingAction
 
   log: LogEntry[]
+  /** Hàng đợi sự kiện cho hoạt ảnh 3D — xem `useGameEvents`. */
+  events: GameEvent[]
 
   /* --- Đồng hồ tổng --- */
   timeRemainingMs: number

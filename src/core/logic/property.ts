@@ -7,7 +7,7 @@ import {
   ownsWholeRegion,
 } from './board'
 import { formatMoney } from './money'
-import { pushLog } from './log'
+import { pushEvent, pushLog } from './log'
 import { getPlayer } from './players'
 import type { BuildLevel, GameCore, PlayerId, TileId } from '../types'
 
@@ -91,6 +91,7 @@ export function buyProperty(state: GameCore, playerId: PlayerId, tileId: TileId)
     `${player.name} đầu tư ${tile.province} – ${tile.name} với giá ${formatMoney(tile.price)}.`,
     playerId,
   )
+  pushEvent(state, 'property-bought', playerId, { tileId, amount: tile.price })
   return true
 }
 
@@ -155,9 +156,13 @@ export function upgradeProperty(state: GameCore, playerId: PlayerId, tileId: Til
     pushLog(
       state,
       'success',
-      `🏛️ ${tile.name} trở thành Biểu tượng Địa phương — không thể bị thâu tóm!`,
+      `${tile.name} trở thành Biểu tượng Địa phương — không thể bị thâu tóm!`,
       playerId,
     )
+    // Tín hiệu cho lớp 3D chạy hoạt ảnh Celebrate của nhân vật.
+    pushEvent(state, 'landmark-built', playerId, { tileId })
+  } else {
+    pushEvent(state, 'property-upgraded', playerId, { tileId, amount: cost })
   }
   return true
 }
@@ -209,7 +214,7 @@ export function takeoverProperty(state: GameCore, playerId: PlayerId, tileId: Ti
     pushLog(
       state,
       'warning',
-      `🛡️ ${owner.name} dùng Bảo Hộ Di Sản chặn đứng thương vụ thâu tóm của ${attacker.name}.`,
+      `${owner.name} dùng Bảo Hộ Di Sản chặn đứng thương vụ thâu tóm của ${attacker.name}.`,
       owner.id,
     )
     return false
@@ -238,9 +243,10 @@ export function takeoverProperty(state: GameCore, playerId: PlayerId, tileId: Ti
   pushLog(
     state,
     'property',
-    `⚔️ ${buyer.name} thâu tóm ${tile.province} – ${tile.name} từ ${seller.name} với giá ${formatMoney(cost)}.`,
+    `${buyer.name} thâu tóm ${tile.province} – ${tile.name} từ ${seller.name} với giá ${formatMoney(cost)}.`,
     playerId,
   )
+  pushEvent(state, 'property-takeover', playerId, { tileId, amount: cost })
   return true
 }
 
@@ -281,9 +287,10 @@ export function demolishProperty(state: GameCore, playerId: PlayerId, tileId: Ti
   pushLog(
     state,
     'warning',
-    `🚧 ${actor.name} giải tỏa công trình của ${owner.name} tại ${tile.province} — còn lại ${BUILD_LEVEL_LABEL[property.level]}.`,
+    `${actor.name} giải tỏa công trình của ${owner.name} tại ${tile.province} — còn lại ${BUILD_LEVEL_LABEL[property.level]}.`,
     playerId,
   )
+  pushEvent(state, 'property-demolished', playerId, { tileId })
   return true
 }
 

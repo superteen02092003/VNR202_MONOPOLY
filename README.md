@@ -1,10 +1,12 @@
-# VNR202 BUSINESS TOUR — Vietnam Edition
+# VNR202 BUSINESS VOYAGE — Vietnam Edition
 
 Board game 3D ôn tập môn **Lịch sử Đảng (VNR202)**, lấy cảm hứng từ Business Tour với
 bối cảnh các địa danh Việt Nam. Một Host điều khiển trên máy chiếu, 5 nhóm trong lớp
 tương tác bằng lời nói.
 
-> **Trạng thái hiện tại: đã xong Giai đoạn 1 — Core Logic (chưa có giao diện thật).**
+> **Trạng thái hiện tại:** Core Logic đã hoàn thiện; bàn cờ 3D và Host Dashboard
+> theo phong cách Business Tour Classic đã có bản triển khai hoàn chỉnh để chạy thử.
+> Nhân vật hiện dùng placeholder và sẽ tự chuyển sang model `.glb` khi asset được bổ sung.
 
 ## Chạy dự án
 
@@ -24,9 +26,10 @@ npm run dev
 | `npm run build`     | Kiểm tra kiểu (tsc) rồi build production      |
 | `npm run lint`      | Chạy oxlint                                   |
 
-Màn hình hiện tại là **bảng thử kỹ thuật** của Giai đoạn 1: chọn nhóm → trả lời câu hỏi
-→ lắc xúc xắc → mua/nâng cấp/thâu tóm → chốt lượt, kèm nhật ký ván đấu. Giai đoạn 3 sẽ
-thay hoàn toàn bằng Host Dashboard thật.
+Giao diện hiện tại gồm sảnh thiết lập, Host Dashboard phủ trên bàn cờ 3D, trivia có
+countdown và màn giải thích, action dock theo ngữ cảnh, nhật ký ván đấu, đồng hồ tổng
+và bảng xếp hạng cuối ván. Bố cục đã được tối ưu cho màn hình 16:9, máy chiếu Full HD
+và có responsive fallback cho màn hình nhỏ.
 
 ## Kiến trúc
 
@@ -56,8 +59,8 @@ src/
 ├── store/
 │   └── useGameStore.ts      ← Zustand + immer: điều phối các bước của một lượt
 ├── scene/                   ← (Giai đoạn 2) React Three Fiber — xem README bên trong
-├── components/              ← (Giai đoạn 3) UI TailwindCSS — xem README bên trong
-└── App.tsx                  ← Bảng thử tạm của Giai đoạn 1
+├── components/              ← Host Dashboard, Lobby, Trivia, Action Dock, toast
+└── App.tsx                  ← Điều phối Lobby / Game và lazy-load scene 3D
 ```
 
 **Nguyên tắc xuyên suốt:** mọi luật chơi nằm trong `src/core`, hoàn toàn không biết React.
@@ -151,7 +154,7 @@ React 19 · TypeScript · Vite · Zustand (+immer) · Three.js / @react-three/fi
 
 ## Lộ trình
 
-- [x] **Giai đoạn 1** — Core Logic: store, luật chơi, ngân hàng câu hỏi, 81 test
-- [ ] **Giai đoạn 2** — Bàn cờ 3D & nhân vật (`src/scene`)
-- [ ] **Giai đoạn 3** — UI/UX cho Quản trò (`src/components`)
+- [x] **Giai đoạn 1** — Core Logic: store, luật chơi, ngân hàng câu hỏi, 107 test
+- [ ] **Giai đoạn 2** — Bàn cờ 3D đã có; chờ model nhân vật chính thức (`src/scene`)
+- [x] **Giai đoạn 3** — UI/UX Host Dashboard responsive (`src/components`)
 - [ ] **Giai đoạn 4** — SFX, test flow, deploy

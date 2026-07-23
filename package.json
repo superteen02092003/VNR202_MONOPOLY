@@ -1,8 +1,8 @@
 {
-  "name": "vnr202-business-tour",
+  "name": "vnr202-business-voyage",
   "private": true,
   "version": "0.1.0",
-  "description": "VNR202 Business Tour - Vietnam Edition | Board game 3D ôn tập môn Lịch sử Đảng",
+  "description": "VNR202 Business Voyage - Vietnam Edition | Board game 3D ôn tập môn Lịch sử Đảng",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -25,6 +25,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@react-three/test-renderer": "^9.1.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
