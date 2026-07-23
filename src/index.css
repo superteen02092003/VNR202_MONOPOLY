@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-vnr-red: #da251d;
+  --color-vnr-gold: #ffcd00;
+  --color-vnr-ink: #0b1220;
+  --color-vnr-panel: #131c31;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-vnr-ink);
+  color: #e2e8f0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
