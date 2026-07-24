@@ -35,7 +35,7 @@ export const CARD_DEFINITIONS: CardDefinition[] = [
   {
     effect: 'escape-jail',
     name: 'Vé Thông Hành',
-    description: 'Thoát ngay khỏi ô Kẹt xe – Cách ly mà không mất phí giải tỏa.',
+    description: 'Thoát ngay khỏi ô Kẹt xe mà không mất phí giải tỏa.',
     targetKind: 'none',
     weight: 3,
     playableBeforeRoll: true,
@@ -71,7 +71,7 @@ export const CARD_DEFINITIONS: CardDefinition[] = [
   {
     effect: 'instant-festival',
     name: 'Đăng Cai Đột Xuất',
-    description: 'Tổ chức Festival ngay trên một địa danh đang sở hữu — tiền lưu trú nhân đôi.',
+    description: 'Đăng cai lễ hội ngay trên một địa danh đang sở hữu — tiền lưu trú nhân đôi.',
     targetKind: 'own-tile',
     weight: 2,
     playableBeforeRoll: true,

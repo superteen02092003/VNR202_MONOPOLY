@@ -4,6 +4,7 @@ import { Edges, Html, RoundedBox } from '@react-three/drei'
 import { BOARD_3D, BUILD_LEVEL_LABEL, formatPropertyPrice } from '../core'
 import type { Tile as TileData } from '../core'
 import { useGameStore } from '../store/useGameStore'
+import { useCardTargeting } from '../components/CardTargetContext'
 import { getTileTransform } from './layout'
 import { TileArtwork } from './TileArtwork'
 
@@ -43,6 +44,7 @@ export function Tile({ tile }: TileProps) {
     const currentId = s.turnOrder[s.currentPlayerIndex]
     return s.players.find((player) => player.id === currentId)?.position
   })
+  const { active: cardTargeting, select: selectCardTarget } = useCardTargeting()
 
   const { position, rotationY, size, isCorner } = getTileTransform(tile.id)
   const [width, depth] = size
@@ -52,12 +54,25 @@ export function Tile({ tile }: TileProps) {
   const isProperty = tile.type === 'property'
   const special = isProperty ? null : SPECIAL_STYLE[tile.type]
   const isActive = activeTileId === tile.id
+  const targetValues = cardTargeting?.targetValues
+  const canSelectTile = Boolean(
+    cardTargeting &&
+      (cardTargeting.kind === 'any-tile' ||
+        (isProperty &&
+          ((cardTargeting.kind === 'own-tile' && property?.ownerId === cardTargeting.playerId) ||
+            (cardTargeting.kind === 'opponent-tile' &&
+              Boolean(property?.ownerId) &&
+              property?.ownerId !== cardTargeting.playerId)))) &&
+      (!targetValues || targetValues.includes(String(tile.id))),
+  )
 
   const surfaceColor = isProperty ? '#f5f1ea' : (special?.surface ?? '#918ca0')
   // Chữ giá luôn dùng màu vùng để đủ tương phản; màu đội đã có ribbon/outline riêng.
   const accentColor =
     (isProperty ? REGION_LABEL_COLOR[tile.region] : special?.accent) ?? '#696576'
-  const edgeColor = isActive
+  const edgeColor = canSelectTile
+    ? '#f5b400'
+    : isActive
     ? '#ffffff'
     : hovered
       ? '#138fc5'
@@ -77,6 +92,11 @@ export function Tile({ tile }: TileProps) {
 
   return (
     <group
+      onPointerDown={(event) => {
+        if (!canSelectTile) return
+        event.stopPropagation()
+        selectCardTarget({ kind: 'tile', tileId: tile.id })
+      }}
       position={position}
       rotation={[0, geometryRotationY, 0]}
       userData={{ role: 'board-tile', tileId: tile.id }}

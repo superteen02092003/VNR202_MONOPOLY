@@ -82,7 +82,7 @@ export function serveJailTurn(state: GameCore): boolean {
   if (player.jailTurnsLeft <= 0) {
     player.status = 'active'
     player.jailTurnsLeft = 0
-    pushLog(state, 'success', `${player.name} đã hết hạn cách ly, lượt sau được đi tiếp.`, player.id)
+    pushLog(state, 'success', `${player.name} đã hết thời gian kẹt xe, lượt sau được đi tiếp.`, player.id)
   } else {
     pushLog(
       state,

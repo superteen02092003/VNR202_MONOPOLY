@@ -1272,16 +1272,15 @@ button:disabled {
 }
 
 .player-card__cash-art {
-  position: absolute;
-  z-index: 0;
-  right: -4px;
-  top: 50%;
-  width: 44px;
-  height: 30px;
+  position: relative;
+  z-index: 1;
+  width: 27px;
+  height: 19px;
   object-fit: contain;
-  opacity: 0.28;
+  flex: 0 0 auto;
+  opacity: 0.95;
   pointer-events: none;
-  transform: translateY(-50%);
+  transform: translateY(1px);
 }
 
 .player-card__cash > span {
@@ -2546,6 +2545,21 @@ button:disabled {
   margin: 1px 0 0;
   color: #747d8b;
   font-size: 0.49rem;
+}
+
+.card-map-target-hint {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  border: 1px solid rgba(19, 143, 197, 0.28);
+  border-radius: 7px;
+  background: rgba(30, 167, 221, 0.1);
+  color: #137ba8;
+  font-size: 0.49rem;
+  font-weight: 850;
+  line-height: 1.2;
 }
 
 .card-use-panel select {
@@ -4528,9 +4542,62 @@ button:disabled {
 }
 
 .strategy-dock {
+  position: fixed;
+  top: 50%;
+  left: 18px;
   width: min(700px, calc(100vw - 36px));
-  grid-template-columns: minmax(180px, 0.82fr) minmax(300px, 1.35fr);
-  transform: translateY(-218px);
+  max-width: 340px;
+  max-height: min(38vh, 320px);
+  grid-template-columns: 1fr;
+  transform: translateY(-50%);
+  padding: 10px;
+}
+
+.strategy-dock__intro {
+  display: none;
+}
+
+.tile-picker-card--direct {
+  position: fixed;
+  top: 50%;
+  right: 18px;
+  width: min(320px, calc(100vw - 36px));
+  max-width: 320px;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 12px;
+  text-align: left;
+  transform: translateY(-50%);
+}
+
+.tile-picker-card--direct .tile-picker-card__icon,
+.tile-picker-card--direct .tile-picker-card__copy {
+  display: block;
+}
+
+.tile-picker-card--direct .tile-picker-card__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+}
+
+.tile-picker-map-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(19, 143, 197, 0.24);
+  border-radius: 10px;
+  background: rgba(30, 167, 221, 0.1);
+  color: var(--bt-cyan-deep);
+  font-size: 0.59rem;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.tile-picker-card--direct .tile-picker-card__actions {
+  justify-content: flex-end;
 }
 
 .movement-dock {
@@ -4601,7 +4668,13 @@ button:disabled {
   }
 
   .strategy-dock {
-    transform: translateY(-166px);
+    left: 12px;
+    transform: translateY(-50%);
+  }
+
+  .tile-picker-card--direct {
+    right: 12px;
+    transform: translateY(-50%);
   }
 
   .movement-dock {
@@ -4686,7 +4759,24 @@ button:disabled {
 
   .strategy-dock {
     grid-template-columns: 1fr;
-    transform: translateY(-124px);
+    top: auto;
+    right: 10px;
+    bottom: 78px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    max-height: min(32vh, 250px);
+    transform: none;
+  }
+
+  .tile-picker-card--direct {
+    top: auto;
+    right: 10px;
+    bottom: 78px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    transform: none;
   }
 
   .movement-dock {
@@ -4697,11 +4787,11 @@ button:disabled {
 /* Automatic settlement feedback */
 .auto-action-card {
   display: grid;
-  min-height: 106px;
+  min-height: 118px;
   grid-template-columns: 58px minmax(0, 1fr) auto;
   align-items: center;
   gap: 14px;
-  padding: 14px 18px;
+  padding: 16px 18px;
   border-left: 5px solid var(--player-color, var(--bt-cyan));
 }
 
@@ -4735,7 +4825,14 @@ button:disabled {
   color: #737e8b;
   font-size: 0.62rem;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.5;
+}
+
+.auto-card-reveal .auto-action-card__copy p {
+  padding-bottom: 3px;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  overflow: visible;
 }
 
 .auto-action-card__copy small {
@@ -4837,6 +4934,12 @@ button:disabled {
   .auto-action-card__copy p,
   .auto-action-card__copy small {
     font-size: 0.52rem;
+  }
+
+  .auto-card-reveal .auto-action-card__copy p {
+    padding-bottom: 2px;
+    font-size: 0.58rem;
+    line-height: 1.5;
   }
 
   .auto-money-feedback__amount {

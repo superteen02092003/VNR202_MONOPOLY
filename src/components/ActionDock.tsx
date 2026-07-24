@@ -15,6 +15,7 @@ import type {
   CardTargetKind,
   CardEffect,
   CardDefinition,
+  PlayerId,
   Player,
   Question,
   Standing,
@@ -23,6 +24,7 @@ import type {
 import { selectCurrentPlayer, useGameStore } from '../store/useGameStore'
 import type { ActionResult } from '../store/useGameStore'
 import { CharacterMark } from './CharacterMark'
+import { useCardTargeting } from './CardTargetContext'
 import { GameIcon } from './GameIcon'
 import type { GameIconName } from './GameIcon'
 import { useNotice } from './useNotice'
@@ -47,7 +49,13 @@ type AutoOverlay =
       receiver: { amount: number; name: string } | null
       title: string
     }
-  | { kind: 'card'; actor: AutoActor; card: CardDefinition | null }
+  | {
+      kind: 'card'
+      actor: AutoActor
+      card: CardDefinition | null
+      saved: boolean
+      usedImmediately: boolean
+    }
   | { kind: 'turn'; actor: AutoActor }
 
 const CARD_ICON_BY_EFFECT: Record<CardEffect, GameIconName> = {
@@ -56,7 +64,7 @@ const CARD_ICON_BY_EFFECT: Record<CardEffect, GameIconName> = {
   'escape-jail': 'ticket',
   'free-stay': 'shield',
   'heritage-shield': 'shield',
-  'instant-festival': 'sparkles',
+  'instant-festival': 'festival',
   stimulus: 'banknote',
   'swap-position': 'swap',
   teleport: 'plane',
@@ -149,17 +157,19 @@ export function ActionDock() {
           : undefined
 
       if (actionKind === 'chance') {
-        const drawnCard = actorAfter?.cards[actorAfter.cards.length - 1]
         setAutoOverlay({
           kind: 'card',
           actor,
-          card: drawnCard ? getCardDefinition(drawnCard.effect) : null,
+          card: result.cardEffect ? getCardDefinition(result.cardEffect) : null,
+          saved: result.cardSaved === true,
+          usedImmediately: result.cardUsedImmediately === true,
         })
         autoFinishTimerRef.current = window.setTimeout(() => {
           setAutoOverlay(null)
           autoInFlightRef.current = false
           autoHandledKeyRef.current = null
-          useGameStore.getState().endTurn()
+          const nextState = useGameStore.getState()
+          if (nextState.pendingAction.kind === 'idle') nextState.endTurn()
         }, 2400)
         return
       }
@@ -249,7 +259,6 @@ export function ActionDock() {
   return (
     <div className="action-dock-wrap">
       {phase === 'pre-roll' && <PreRollDock current={current} />}
-      {(phase === 'rolling' || phase === 'moving') && <MovementDock />}
       {phase === 'action' && <ActionPrompt />}
     </div>
   )
@@ -455,10 +464,12 @@ function PreRollDock({ current }: { current: Player | undefined }) {
   if (pending.kind === 'travel-choose') {
     return (
       <TilePickerCard
-        icon="plane"
+        icon="airport"
         label="ĐẶC QUYỀN SÂN BAY"
         onCancel={skipTravel}
         onPick={chooseTravelDestination}
+        directOnBoard
+        playerId={current.id}
         subtitle="Chọn một điểm đến bất kỳ hoặc tiếp tục đổ xúc xắc như thường."
         tileIds={BOARD.map((tile) => tile.id)}
         title="Bay thẳng đến địa danh"
@@ -486,6 +497,7 @@ function CardInventory({ player }: { player: Player }) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [targetValue, setTargetValue] = useState('')
   const { runAction } = useNotice()
+  const { begin, clear } = useCardTargeting()
 
   const card = player.cards.find((item) => item.instanceId === activeId)
   const definition = card ? getCardDefinition(card.effect) : null
@@ -497,12 +509,46 @@ function CardInventory({ player }: { player: Player }) {
     [definition, player, players, properties],
   )
 
+  const isMapTarget = Boolean(
+    definition &&
+      ['player', 'own-tile', 'opponent-tile', 'any-tile'].includes(definition.targetKind),
+  )
+
   useEffect(() => {
-    setTargetValue(targetOptions[0]?.value ?? '')
-  }, [activeId, targetOptions])
+    setTargetValue(definition?.targetKind === 'dice' ? targetOptions[0]?.value ?? '' : '')
+  }, [activeId, definition?.targetKind, targetOptions])
+
+  useEffect(() => {
+    if (!card || !definition || !isMapTarget || targetOptions.length === 0) {
+      clear()
+      return
+    }
+
+    begin(
+      {
+        cardId: card.instanceId,
+        kind: definition.targetKind,
+        playerId: player.id,
+        targetValues: targetOptions.map((option) => option.value),
+      },
+      (target) => {
+        const succeeded = runAction(
+          () => playCard(card.instanceId, target),
+          `Đã dùng thẻ “${definition.name}”.`,
+        )
+        if (succeeded) {
+          setActiveId(null)
+          clear()
+        }
+      },
+    )
+
+    return clear
+  }, [begin, card, clear, definition, isMapTarget, playCard, player.id, runAction, targetOptions])
 
   const useCard = () => {
     if (!card || !definition) return
+    if (isMapTarget) return
     const target = createCardTarget(definition.targetKind, targetValue)
     const succeeded = runAction(
       () => playCard(card.instanceId, target),
@@ -561,7 +607,13 @@ function CardInventory({ player }: { player: Player }) {
             <strong>{definition.name}</strong>
             <p>{definition.description}</p>
           </div>
-          {definition.targetKind !== 'none' && targetOptions.length > 0 && (
+          {isMapTarget && targetOptions.length > 0 && (
+            <div className="card-map-target-hint">
+              <GameIcon name="target" size={14} />
+              <span>Bấm trực tiếp vào ô hoặc nhóm phù hợp trên bàn cờ</span>
+            </div>
+          )}
+          {!isMapTarget && definition.targetKind !== 'none' && targetOptions.length > 0 && (
             <label>
               <span className="sr-only">Mục tiêu của thẻ</span>
               <select
@@ -580,55 +632,18 @@ function CardInventory({ player }: { player: Player }) {
           {definition.targetKind !== 'none' && targetOptions.length === 0 && (
             <span className="card-no-target">Chưa có mục tiêu hợp lệ</span>
           )}
-          <button
-            disabled={definition.targetKind !== 'none' && !targetValue}
-            onClick={useCard}
-            type="button"
-          >
-            Dùng thẻ
-          </button>
+          {!isMapTarget && (
+            <button
+              disabled={definition.targetKind !== 'none' && !targetValue}
+              onClick={useCard}
+              type="button"
+            >
+              Dùng thẻ
+            </button>
+          )}
         </div>
       )}
     </div>
-  )
-}
-
-function MovementDock() {
-  const phase = useGameStore((state) => state.phase)
-  const dice = useGameStore((state) => state.dice)
-  const applyMovement = useGameStore((state) => state.applyMovement)
-  const current = useGameStore(selectCurrentPlayer)
-
-  if (!dice || !current) return null
-
-  return (
-    <section className="action-dock movement-dock">
-      <div className="movement-dock__player" style={{ '--player-color': current.color } as CSSProperties}>
-        <CharacterMark characterId={current.characterId} />
-        <div>
-          <small>{phase === 'rolling' ? 'XÚC XẮC ĐANG LĂN' : 'ĐANG DI CHUYỂN'}</small>
-          <strong>{current.name}</strong>
-        </div>
-      </div>
-      <div className="dice-result">
-        <span>{dice[0]}</span>
-        <i>+</i>
-        <span>{dice[1]}</span>
-        <i>=</i>
-        <strong>{dice[0] + dice[1]}</strong>
-      </div>
-      <div className="movement-dock__status">
-        <div className="motion-bars"><i /><i /><i /></div>
-        <span>{phase === 'rolling' ? 'Chờ xúc xắc dừng…' : `Đang đi ${dice[0] + dice[1]} bước…`}</span>
-      </div>
-      <ActionButton
-        action={applyMovement}
-        className="skip-motion-button"
-        icon="chevron-right"
-        label="Bỏ qua hoạt ảnh"
-        variant="ghost"
-      />
-    </section>
   )
 }
 
@@ -718,8 +733,8 @@ function ActionPrompt() {
     case 'festival':
       return (
         <TilePickerCard
-          icon="sparkles"
-          label="ĐĂNG CAI FESTIVAL"
+          icon="festival"
+          label="ĐĂNG CAI LỄ HỘI"
           onCancel={declineAction}
           onPick={chooseFestivalTile}
           subtitle="Địa danh được chọn sẽ nhân đôi tiền lưu trú."
@@ -745,7 +760,7 @@ function ActionPrompt() {
 
     case 'jailed':
       return (
-        <DecisionCard current={current} eyebrow="KẸT XE · CÁCH LY" icon="lock" title={`Còn ${pending.turnsLeft} lượt chờ`}>
+        <DecisionCard current={current} eyebrow="KẸT XE" icon="lock" title={`Còn ${pending.turnsLeft} lượt chờ`}>
           <p className="decision-copy">
             Trả phí giải tỏa để tiếp tục hành trình ngay, hoặc chấp nhận nghỉ lượt này.
           </p>
@@ -770,9 +785,9 @@ function ActionPrompt() {
           action={declineAction}
           buttonLabel="Đã rõ"
           current={current}
-          icon="plane"
+          icon="airport"
           message="Ở lượt kế tiếp, đội được bay thẳng đến bất kỳ ô nào trên bàn cờ."
-          title="Đặc quyền Sân bay Quốc tế"
+          title="Đặc quyền Sân bay"
         />
       )
 
@@ -789,10 +804,18 @@ function AutomaticOverlay({ overlay }: { overlay: AutoOverlay }) {
           <CharacterMark characterId={overlay.actor.characterId} />
         </div>
         <div className="auto-action-card__copy">
-          <span className="section-kicker">THẺ CƠ HỘI TỰ ĐỘNG</span>
+          <span className="section-kicker">THẺ CƠ HỘI</span>
           <h2>{overlay.card ? overlay.card.name : 'Túi thẻ đã đầy'}</h2>
           <p>{overlay.card?.description ?? 'Đội đã có đủ số thẻ tối đa trong túi đồ.'}</p>
-          <small>{overlay.card ? `${overlay.actor.name} đã nhận thẻ mới.` : 'Lượt chơi tiếp tục tự động.'}</small>
+          <small>
+            {overlay.card
+              ? overlay.saved
+                ? `${overlay.actor.name} đã lưu thẻ để dùng khi cần.`
+                : overlay.usedImmediately
+                  ? `${overlay.actor.name} đã dùng thẻ ngay khi rút.`
+                  : 'Thẻ không có mục tiêu phù hợp và đã được bỏ qua.'
+              : 'Lượt chơi tiếp tục tự động.'}
+          </small>
         </div>
         <GameIcon name="cards" size={28} />
       </section>
@@ -955,35 +978,74 @@ function ContextCardAction({
 }
 
 function TilePickerCard({
+  directOnBoard = false,
   icon,
   label,
   onCancel,
   onPick,
+  playerId,
   subtitle,
   tileIds,
   title,
 }: {
+  directOnBoard?: boolean
   icon: GameIconName
   label: string
   onCancel: () => ActionResult
   onPick: (tileId: TileId) => ActionResult
+  playerId?: PlayerId
   subtitle: string
   tileIds: TileId[]
   title: string
 }) {
   const [selected, setSelected] = useState(() => String(tileIds[0] ?? ''))
+  const { begin, clear } = useCardTargeting()
+  const { runAction } = useNotice()
+  const tileIdsKey = tileIds.join(',')
+  const targetValues = useMemo(() => (tileIdsKey ? tileIdsKey.split(',') : []), [tileIdsKey])
 
-  useEffect(() => setSelected(String(tileIds[0] ?? '')), [tileIds])
+  useEffect(() => setSelected(targetValues[0] ?? ''), [targetValues])
+
+  useEffect(() => {
+    if (!directOnBoard || !playerId || tileIds.length === 0) {
+      if (directOnBoard) clear()
+      return
+    }
+
+    begin(
+      {
+        cardId: 'travel-destination',
+        kind: 'any-tile',
+        playerId,
+        targetValues,
+      },
+      (target) => {
+        if (target.kind !== 'tile') return
+        const succeeded = runAction(
+          () => onPick(target.tileId),
+          `Đã chọn ô ${target.tileId} làm điểm đến.`,
+        )
+        if (succeeded) clear()
+      },
+    )
+
+    return clear
+  }, [begin, clear, directOnBoard, onPick, playerId, runAction, targetValues, tileIds.length])
 
   return (
-    <section className="action-dock tile-picker-card">
+    <section className={`action-dock tile-picker-card ${directOnBoard ? 'tile-picker-card--direct' : ''}`}>
       <div className="tile-picker-card__icon"><GameIcon name={icon} size={27} /></div>
       <div className="tile-picker-card__copy">
         <span className="section-kicker">{label}</span>
         <h2>{title}</h2>
         <p>{subtitle}</p>
       </div>
-      {tileIds.length > 0 ? (
+      {directOnBoard && tileIds.length > 0 ? (
+        <div className="tile-picker-map-hint">
+          <GameIcon name="target" size={18} />
+          <span>Chọn trực tiếp một ô đang sáng trên bàn cờ</span>
+        </div>
+      ) : tileIds.length > 0 ? (
         <label className="tile-select">
           <GameIcon name="map" size={18} />
           <select
@@ -1003,7 +1065,7 @@ function TilePickerCard({
       )}
       <div className="tile-picker-card__actions">
         <ActionButton action={onCancel} label="Bỏ qua" variant="secondary" />
-        {tileIds.length > 0 && (
+        {!directOnBoard && tileIds.length > 0 && (
           <ActionButton
             action={() => onPick(Number(selected))}
             icon="check"

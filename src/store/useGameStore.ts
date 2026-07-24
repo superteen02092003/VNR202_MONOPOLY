@@ -4,6 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 
 import { GAME_CONFIG } from '../core/config'
 import type {
+  CardEffect,
   CardTarget,
   GameCore,
   GameSettings,
@@ -47,6 +48,10 @@ import type { PlayerSetup, StartMatchResult } from '../core/logic'
 export interface ActionResult {
   ok: boolean
   reason: string | null
+  cardEffect?: CardEffect | null
+  cardSaved?: boolean
+  cardUsedImmediately?: boolean
+  cardMovedPlayer?: boolean
 }
 
 const ok: ActionResult = { ok: true, reason: null }
@@ -496,7 +501,7 @@ export const useGameStore = create<GameStore>()(persist(
         const player = getCurrentPlayer(state)
         const pending = state.pendingAction
         if (!player || pending.kind !== 'festival') {
-          result = no('Hiện không ở ô Đăng cai Festival.')
+          result = no('Hiện không ở ô Đăng cai lễ hội.')
           return
         }
         if (!pending.eligibleTileIds.includes(tileId)) {
@@ -504,7 +509,7 @@ export const useGameStore = create<GameStore>()(persist(
           return
         }
         if (!startFestival(state, player.id, tileId)) {
-          result = no('Không tổ chức được Festival tại địa danh này.')
+          result = no('Không tổ chức được lễ hội tại địa danh này.')
           return
         }
         state.pendingAction = { kind: 'idle' }
@@ -520,8 +525,15 @@ export const useGameStore = create<GameStore>()(persist(
           result = no('Hiện không ở ô Cơ hội.')
           return
         }
-        drawCard(state, player.id)
-        state.pendingAction = { kind: 'idle' }
+        const drawn = drawCard(state, player.id, { immediate: true })
+        result = {
+          ...ok,
+          cardEffect: drawn.card?.effect ?? null,
+          cardSaved: drawn.saved,
+          cardUsedImmediately: drawn.usedImmediately,
+          cardMovedPlayer: drawn.movedPlayer,
+        }
+        state.pendingAction = drawn.movedPlayer ? resolveLanding(state, player.id) : { kind: 'idle' }
       })
       return result
     },
@@ -577,7 +589,7 @@ export const useGameStore = create<GameStore>()(persist(
           }
           case 'festival': {
             if (player) {
-              pushLog(state, 'info', `${player.name} không đăng cai Festival lượt này.`, player.id)
+              pushLog(state, 'info', `${player.name} không đăng cai lễ hội lượt này.`, player.id)
             }
             break
           }
