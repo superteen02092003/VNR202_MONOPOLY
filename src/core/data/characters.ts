@@ -5,7 +5,18 @@ import type { Character, CharacterId } from '../types'
  * File .glb đặt trong /public/models — xem public/models/README.md (Giai đoạn 2).
  */
 export const CHARACTERS: Character[] = [
-  { id: 'hello-kitty', name: 'Hello Kitty', modelUrl: '/models/hello-kitty.glb', color: '#ff6b9d' },
+  {
+    id: 'hello-kitty',
+    name: 'Hello Kitty',
+    modelUrl: '/models/hello-kitty.glb',
+    color: '#ff6b9d',
+    // Model gốc chỉ có 2 clip đặt tên chung chung "Kitty" / "Kitty.001" nên bộ dò
+    // theo từ khóa không nhận ra — chỉ định tay: Kitty.001 (morph nhẹ) cho Idle,
+    // Kitty (tay/chân đung đưa) cho Jump; Celebrate mượn lại Jump vì không có clip riêng.
+    clips: { idle: 'Kitty.001', jump: 'Kitty', celebrate: 'Kitty' },
+    // Model cao ~4.5 đơn vị trong file gốc, quy về ~1 đơn vị cho khớp bàn cờ.
+    transform: { scale: 0.22 },
+  },
   { id: 'masha', name: 'Masha', modelUrl: '/models/masha.glb', color: '#f472b6' },
   { id: 'pikachu', name: 'Pikachu', modelUrl: '/models/pikachu.glb', color: '#facc15' },
   { id: 'doraemon', name: 'Doraemon', modelUrl: '/models/doraemon.glb', color: '#38bdf8' },
