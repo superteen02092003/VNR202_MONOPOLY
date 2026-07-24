@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { CSSProperties, FormEvent } from 'react'
 
-import { CHARACTERS, GAME_CONFIG } from '../core'
+import { CHARACTERS, GAME_CONFIG, playSound, soundManager } from '../core'
 import type { CharacterId } from '../core'
 import type { PlayerSetup } from '../core/logic/setup'
 import { useGameStore } from '../store/useGameStore'
@@ -15,6 +15,7 @@ const DEFAULT_TEAM_NAMES = ['Nhóm 1', 'Nhóm 2', 'Nhóm 3', 'Nhóm 4', 'Nhóm 5
 export function LobbyScreen() {
   const startGame = useGameStore((state) => state.startGame)
   const { notify } = useNotice()
+  const [isMuted, setIsMuted] = useState(() => soundManager.isMuted())
 
   const count = GAME_CONFIG.MAX_PLAYERS
   const [names, setNames] = useState(() => [...DEFAULT_TEAM_NAMES])
@@ -22,8 +23,14 @@ export function LobbyScreen() {
     CHARACTERS.slice(0, GAME_CONFIG.MAX_PLAYERS).map((character) => character.id),
   )
 
+  const toggleSound = () => {
+    const muted = soundManager.toggleMute()
+    setIsMuted(muted)
+  }
+
   const submit = (event: FormEvent) => {
     event.preventDefault()
+    playSound('click')
     const activeNames = names.slice(0, count).map((name) => name.trim())
 
     if (activeNames.some((name) => !name)) {
@@ -48,8 +55,18 @@ export function LobbyScreen() {
 
   return (
     <main className="lobby-shell">
-      <header className="lobby-header">
+      <header className="lobby-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <BrandLogo />
+        <button
+          aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+          aria-pressed={isMuted}
+          className={`topbar-icon-button ${isMuted ? 'is-active' : ''}`}
+          onClick={toggleSound}
+          title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+          type="button"
+        >
+          <GameIcon name={isMuted ? 'mute' : 'volume'} size={20} />
+        </button>
       </header>
 
       <div className="lobby-layout">

@@ -1,7 +1,7 @@
 import { Html } from '@react-three/drei'
 import { useEffect, useRef, useState } from 'react'
 
-import { BOARD_3D } from '../core'
+import { BOARD_3D, playSound } from '../core'
 import { useGameStore } from '../store/useGameStore'
 import { GameIcon } from '../components/GameIcon'
 
@@ -43,12 +43,14 @@ export function Dice() {
 
     setIsRolling(true)
     setDisplayDice(randomDice())
+    playSound('dice-roll')
     intervalRef.current = setInterval(() => setDisplayDice(randomDice()), ROLL_TICK_MS)
     timeoutRef.current = setTimeout(() => {
       if (intervalRef.current) clearInterval(intervalRef.current)
       intervalRef.current = null
       setDisplayDice(dice)
       setIsRolling(false)
+      playSound('dice-land')
       useGameStore.getState().markMoving()
     }, ROLL_DURATION_MS)
 

@@ -9,6 +9,7 @@ import {
   formatPropertyPrice,
   getCardDefinition,
   getTile,
+  playSound,
 } from '../core'
 import type {
   CardTarget,
@@ -286,10 +287,13 @@ function TriviaPanel({
   }, [isTimerRunning, question.id])
 
   useEffect(() => {
+    if (remaining <= 5 && remaining > 0 && isTimerRunning) {
+      playSound('tick-warning')
+    }
     if (remaining !== 0 || firedRef.current) return
     firedRef.current = true
     onAnswer(null)
-  }, [onAnswer, remaining])
+  }, [onAnswer, remaining, isTimerRunning])
 
   const progress = Math.max(0, Math.min(1, remaining / seconds))
 
@@ -348,7 +352,7 @@ function TriviaPanel({
               <button
                 className="trivia-option"
                 key={option}
-                onClick={() => onAnswer(index)}
+                onClick={() => { playSound('click'); onAnswer(index) }}
                 type="button"
               >
                 <span>{String.fromCharCode(65 + index)}</span>
@@ -508,7 +512,10 @@ function CardInventory({ player }: { player: Player }) {
       () => playCard(card.instanceId, target),
       `Đã dùng thẻ “${definition.name}”.`,
     )
-    if (succeeded) setActiveId(null)
+    if (succeeded) {
+      playSound('card-use')
+      setActiveId(null)
+    }
   }
 
   return (
@@ -1056,6 +1063,11 @@ function ActionButton({
 function ResultOverlay() {
   const standings = useGameStore((state) => state.standings)
   const resetGame = useGameStore((state) => state.resetGame)
+
+  useEffect(() => {
+    playSound('fanfare')
+  }, [])
+
   if (!standings?.length) return null
 
   const winner = standings[0]

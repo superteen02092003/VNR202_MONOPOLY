@@ -60,6 +60,7 @@ class SoundManager {
   private isUnlocked: boolean = false
   private bgmAudio: HTMLAudioElement | null = null
   private bgmVolume: number = 0.35
+  private audioCtx: AudioContext | null = null
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -70,6 +71,7 @@ class SoundManager {
 
       // Unlock Audio Context & BGM khi người dùng tương tác lần đầu
       const unlock = () => {
+        this.resumeAudioContext()
         if (!this.isUnlocked) {
           this.isUnlocked = true
           try {
@@ -83,14 +85,34 @@ class SoundManager {
           }
         }
         this.playBgm()
-        window.removeEventListener('pointerdown', unlock)
-        window.removeEventListener('keydown', unlock)
       }
       window.addEventListener('pointerdown', unlock, { capture: true })
+      window.addEventListener('click', unlock, { capture: true })
+      window.addEventListener('touchstart', unlock, { capture: true })
       window.addEventListener('keydown', unlock, { capture: true })
+
+      // Preload audio files
+      setTimeout(() => this.preloadAll(), 100)
 
       // Thử phát BGM ngay lập tức (nếu trình duyệt cho phép)
       this.playBgm()
+    }
+  }
+
+  private resumeAudioContext(): void {
+    if (typeof window === 'undefined') return
+    try {
+      if (!this.audioCtx) {
+        const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext
+        if (AudioCtxClass) {
+          this.audioCtx = new AudioCtxClass()
+        }
+      }
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch(() => {})
+      }
+    } catch {
+      // Ignore AudioContext errors
     }
   }
 
@@ -136,11 +158,13 @@ class SoundManager {
 
   public playBgm(): void {
     if (this.muted || typeof window === 'undefined') return
+    this.resumeAudioContext()
 
     if (!this.bgmAudio) {
       const rawBase = import.meta.env.BASE_URL || '/'
       const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`
-      this.bgmAudio = new Audio(`${base}sounds/02.%20Smooth.mp3`)
+      const bgmUrl = encodeURI(`${base}sounds/02. Smooth.mp3`.replace(/\/+/g, '/'))
+      this.bgmAudio = new Audio(bgmUrl)
       this.bgmAudio.loop = true
       this.bgmAudio.volume = this.bgmVolume
     }
@@ -171,7 +195,8 @@ class SoundManager {
   private getSoundUrl(name: SoundName): string {
     const rawBase = import.meta.env.BASE_URL || '/'
     const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`
-    return `${base}${SOUND_FILES[name]}`
+    const path = `${base}${SOUND_FILES[name]}`.replace(/\/+/g, '/')
+    return encodeURI(path)
   }
 
   private getAudioInstance(name: SoundName): HTMLAudioElement {
@@ -185,7 +210,9 @@ class SoundManager {
     for (const audio of pool) {
       if (audio.paused || audio.ended) {
         try {
-          audio.currentTime = 0
+          if (audio.readyState >= 2) {
+            audio.currentTime = 0
+          }
         } catch {
           // Bỏ qua nếu chưa sẵn sàng
         }
@@ -197,6 +224,7 @@ class SoundManager {
     // Tạo mới nếu tất cả audio trong pool đều đang phát
     const url = this.getSoundUrl(name)
     const newAudio = new Audio(url)
+    newAudio.preload = 'auto'
     newAudio.volume = this.volume
     pool.push(newAudio)
     return newAudio
@@ -204,11 +232,14 @@ class SoundManager {
 
   public play(name: SoundName): void {
     if (this.muted || typeof window === 'undefined') return
+    this.resumeAudioContext()
 
     try {
       const audio = this.getAudioInstance(name)
       try {
-        audio.currentTime = 0
+        if (audio.readyState >= 2) {
+          audio.currentTime = 0
+        }
       } catch {
         // Bỏ qua lỗi thiết lập currentTime
       }

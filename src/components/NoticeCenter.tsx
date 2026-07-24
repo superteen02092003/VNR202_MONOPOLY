@@ -8,6 +8,7 @@ import {
 import type { ReactNode } from 'react'
 
 import type { ActionResult } from '../store/useGameStore'
+import { playSound } from '../core'
 import { GameIcon } from './GameIcon'
 import { NoticeContext } from './useNotice'
 import type { NoticeTone } from './useNotice'
@@ -32,6 +33,7 @@ export function NoticeProvider({ children }: { children: ReactNode }) {
 
   const dismiss = useCallback(() => {
     clearTimer()
+    playSound('click')
     setNotice(null)
   }, [clearTimer])
 
