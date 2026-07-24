@@ -933,19 +933,24 @@ button:disabled {
 .character-mark {
   display: inline-grid;
   place-items: center;
-  color: color-mix(in srgb, var(--character-color), var(--bt-ink) 48%);
-  font-family: Impact, 'Arial Narrow', 'Segoe UI', sans-serif;
+  /* Kích thước avatar bám theo font-size của từng ngữ cảnh (các quy tắc bên dưới). */
+  width: 1.85em;
+  height: 1.85em;
   font-size: 0.62rem;
-  font-style: normal;
-  font-weight: 900;
-  letter-spacing: 0.025em;
   line-height: 1;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Mặt nhân vật (SVG) lấp đầy khung avatar. */
+.character-face {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .character-avatar .character-mark,
 .player-card__avatar .character-mark {
-  font-size: 0.68rem;
+  width: 88%;
+  height: 88%;
 }
 
 .turn-summary__player .character-mark,

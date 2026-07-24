@@ -12,8 +12,6 @@ import type { Tile } from '../core'
 interface TileArtworkProps {
   accentColor: string
   depth: number
-  /** Ô quay ngược camera thì vẽ chữ xoay 180° để không bị lộn ngược. */
-  flipText: boolean
   isCorner: boolean
   tile: Tile
   width: number
@@ -28,14 +26,13 @@ interface TileArtworkProps {
 export function TileArtwork({
   accentColor,
   depth,
-  flipText,
   isCorner,
   tile,
   width,
 }: TileArtworkProps) {
   const texture = useMemo(
-    () => createTileTexture(tile, accentColor, isCorner, flipText),
-    [accentColor, flipText, isCorner, tile],
+    () => createTileTexture(tile, accentColor, isCorner),
+    [accentColor, isCorner, tile],
   )
 
   useEffect(() => () => texture?.dispose(), [texture])
@@ -74,12 +71,7 @@ export function TileArtwork({
   )
 }
 
-function createTileTexture(
-  tile: Tile,
-  accentColor: string,
-  isCorner: boolean,
-  flipText: boolean,
-) {
+function createTileTexture(tile: Tile, accentColor: string, isCorner: boolean) {
   if (typeof document === 'undefined') return null
 
   const canvas = document.createElement('canvas')
@@ -89,12 +81,6 @@ function createTileTexture(
   if (!context) return null
 
   context.clearRect(0, 0, canvas.width, canvas.height)
-  // Ô quay ngược camera: xoay hệ tọa độ 180° quanh tâm canvas trước khi vẽ,
-  // nhờ vậy chữ và icon đọc xuôi mà vị trí nhãn trên mặt ô vẫn giữ nguyên.
-  if (flipText) {
-    context.translate(canvas.width, canvas.height)
-    context.rotate(Math.PI)
-  }
   drawCard(context, canvas.width, canvas.height, isCorner)
 
   if (tile.type === 'property') {

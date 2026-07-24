@@ -214,7 +214,6 @@ describe('Nhãn cố định trên ô cờ', () => {
         <TileArtwork
           accentColor="#5f8500"
           depth={BOARD_3D.CORNER_SIZE}
-          flipText={false}
           isCorner
           tile={tile}
           width={BOARD_3D.CORNER_SIZE}
