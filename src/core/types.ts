@@ -26,7 +26,7 @@ export type CharacterId =
   | 'kirby'
   | 'baymax'
   | 'totoro'
-  | 'snoopy'
+  | 'conan'
   | 'among-us'
 
 export interface Character {
