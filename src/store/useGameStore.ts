@@ -19,6 +19,7 @@ import {
   endMatch,
   endTurn as endTurnCore,
   formatMoney,
+  formatPropertyPrice,
   getCurrentPlayer,
   getPropertyState,
   getPropertyTile,
@@ -561,7 +562,7 @@ export const useGameStore = create<GameStore>()(persist(
               pushLog(
                 state,
                 'info',
-                `${player.name} bỏ qua cơ hội đầu tư ${tile.province} (${formatMoney(pending.price)}).`,
+                `${player.name} bỏ qua cơ hội đầu tư ${tile.province} (${formatPropertyPrice(pending.price)}).`,
                 player.id,
               )
             }

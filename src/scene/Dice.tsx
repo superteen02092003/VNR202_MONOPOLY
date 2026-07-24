@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { BOARD_3D } from '../core'
 import { useGameStore } from '../store/useGameStore'
+import { GameIcon } from '../components/GameIcon'
 
 const ROLL_DURATION_MS = 1200
 const ROLL_TICK_MS = 140
@@ -22,6 +23,7 @@ type DiceValue = number | null
 export function Dice() {
   const dice = useGameStore((state) => state.dice)
   const phase = useGameStore((state) => state.phase)
+  const rollDice = useGameStore((state) => state.rollDice)
   const [displayDice, setDisplayDice] = useState<[DiceValue, DiceValue]>([null, null])
   const [isRolling, setIsRolling] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -63,23 +65,34 @@ export function Dice() {
     : null
 
   return (
-    <Html
-      center
-      pointerEvents="none"
-      position={[0, BOARD_3D.TILE_HEIGHT + 0.18, 0]}
-      zIndexRange={[20, 0]}
-    >
-      <div className={`board-dice-stage${isRolling ? ' is-rolling' : ''}`} aria-live="polite">
+        <Html
+          center
+          pointerEvents="auto"
+          position={[0, BOARD_3D.TILE_HEIGHT + 0.18, 0]}
+          zIndexRange={[20, 0]}
+        >
+          <div className={`board-dice-stage${isRolling ? ' is-rolling' : ''}`} aria-live="polite">
         <div className="board-dice-stage__pair">
           <DieCard index={0} rolling={isRolling} value={displayDice[0]} />
           <span className="board-dice-stage__plus">+</span>
           <DieCard index={1} rolling={isRolling} value={displayDice[1]} />
         </div>
-        <div className="board-dice-stage__result">
-          {isRolling ? 'Đang lắc xúc xắc…' : total === null ? 'Sẵn sàng đổ xúc xắc' : `Kết quả: ${total}`}
-        </div>
-      </div>
-    </Html>
+            <div className="board-dice-stage__result">
+              {isRolling ? 'Đang lắc xúc xắc…' : total === null ? 'Sẵn sàng đổ xúc xắc' : `Kết quả: ${total}`}
+            </div>
+            {phase === 'pre-roll' && (
+              <button
+                className="board-dice-stage__roll-button"
+                disabled={isRolling}
+                onClick={() => rollDice()}
+                type="button"
+              >
+                <GameIcon name="dice" size={15} />
+                <span>Lắc xúc xắc</span>
+              </button>
+            )}
+          </div>
+        </Html>
   )
 }
 

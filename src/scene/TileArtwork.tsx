@@ -6,7 +6,7 @@ import {
   SRGBColorSpace,
 } from 'three'
 
-import { BOARD_3D } from '../core'
+import { BOARD_3D, formatPropertyPrice } from '../core'
 import type { Tile } from '../core'
 
 interface TileArtworkProps {
@@ -136,7 +136,7 @@ function createTileTexture(tile: Tile, accentColor: string, isCorner: boolean) {
 
 /** "140" → "140K" theo phong cách bảng Business Tour, dễ đọc từ xa. */
 function formatTilePrice(price: number): string {
-  return `${price.toLocaleString('vi-VN')}K`
+  return formatPropertyPrice(price)
 }
 
 const CARD_INSET = 16
