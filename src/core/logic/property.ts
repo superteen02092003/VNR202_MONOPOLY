@@ -237,6 +237,7 @@ export function takeoverProperty(state: GameCore, playerId: PlayerId, tileId: Ti
       `${owner.name} dùng Bảo Hộ Di Sản chặn đứng thương vụ thâu tóm của ${attacker.name}.`,
       owner.id,
     )
+    pushEvent(state, 'shield-activate', owner.id, { tileId })
     return false
   }
 

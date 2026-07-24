@@ -90,6 +90,8 @@ export function teleportPlayer(
     ? grantStartBonus(state, playerId, false, landedOnStart)
     : 0
 
+  pushEvent(state, 'teleport', playerId, { tileId: to })
+
   return {
     from,
     to,
@@ -106,23 +108,26 @@ function grantStartBonus(
   passedStart: boolean,
   landedOnStart: boolean,
 ): number {
+  let bonus = 0
   if (landedOnStart) {
-    return credit(
+    bonus = credit(
       state,
       playerId,
       GAME_CONFIG.LAND_ON_START_BONUS,
       'dừng đúng ô Xuất phát, Nhà nước hỗ trợ vốn gấp đôi',
     )
-  }
-  if (passedStart) {
-    return credit(
+  } else if (passedStart) {
+    bonus = credit(
       state,
       playerId,
       GAME_CONFIG.PASS_START_BONUS,
       'đi qua ô Xuất phát, nhận vốn hỗ trợ',
     )
   }
-  return 0
+  if (bonus > 0) {
+    pushEvent(state, 'pass-start', playerId, { amount: bonus })
+  }
+  return bonus
 }
 
 /* ------------------------------------------------------------------ */
@@ -152,4 +157,5 @@ export function releaseFromJail(state: GameCore, playerId: PlayerId, reason: str
   player.status = 'active'
   player.jailTurnsLeft = 0
   pushLog(state, 'success', `${player.name} đã thoát ô Kẹt xe — ${reason}.`, playerId)
+  pushEvent(state, 'escape-jail', playerId)
 }

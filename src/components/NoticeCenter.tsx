@@ -7,6 +7,7 @@ import {
 } from 'react'
 import type { ReactNode } from 'react'
 
+import { playSound } from '../core'
 import type { ActionResult } from '../store/useGameStore'
 import { GameIcon } from './GameIcon'
 import { NoticeContext } from './useNotice'
@@ -70,7 +71,15 @@ export function NoticeProvider({ children }: { children: ReactNode }) {
               <GameIcon name={notice.tone === 'error' ? 'close' : notice.tone === 'success' ? 'check' : 'sparkles'} size={18} />
             </span>
             <span className="notice__message">{notice.message}</span>
-            <button aria-label="Đóng thông báo" className="notice__close" onClick={dismiss} type="button">
+            <button
+              aria-label="Đóng thông báo"
+              className="notice__close"
+              onClick={() => {
+                playSound('click')
+                dismiss()
+              }}
+              type="button"
+            >
               <GameIcon name="close" size={16} />
             </button>
           </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { CSSProperties, FormEvent } from 'react'
 
-import { CHARACTERS, GAME_CONFIG } from '../core'
+import { CHARACTERS, GAME_CONFIG, playSound } from '../core'
 import type { CharacterId } from '../core'
 import type { PlayerSetup } from '../core/logic/setup'
 import { useGameStore } from '../store/useGameStore'
@@ -24,6 +24,7 @@ export function LobbyScreen() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
+    playSound('click')
     const activeNames = names.slice(0, count).map((name) => name.trim())
 
     if (activeNames.some((name) => !name)) {

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 
+import { playGameEventSound } from '../core'
 import type { GameEvent } from '../core'
 import { useGameStore } from '../store/useGameStore'
 
@@ -21,8 +22,10 @@ export function useGameEvents(handler: (event: GameEvent) => void): void {
       for (const event of state.events) {
         if (event.seq <= lastSeq) continue
         lastSeq = event.seq
+        playGameEventSound(event)
         handlerRef.current(event)
       }
     })
   }, [])
 }
+

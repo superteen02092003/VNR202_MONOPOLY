@@ -4,7 +4,7 @@ import { Vector3 } from 'three'
 import type { Group } from 'three'
 import { useFrame } from '@react-three/fiber'
 
-import { BOARD_3D } from '../core'
+import { BOARD_3D, playSound } from '../core'
 import type { CharacterAnimation, GameCore, PlayerId } from '../core'
 import { useGameStore } from '../store/useGameStore'
 import { getHopPath, getPawnSlot, getTileSurface } from './layout'
@@ -60,6 +60,7 @@ export function usePawnMotion(playerId: PlayerId): PawnMotion {
       const path = getHopPath(fromTile, steps)
       const origin = getTileSurface(fromTile)
       const progress = { t: 0 }
+      let lastSegment = -1
 
       animate(progress, {
         t: path.length,
@@ -69,6 +70,11 @@ export function usePawnMotion(playerId: PlayerId): PawnMotion {
           const t = Math.min(progress.t, path.length)
           const segment = Math.min(Math.floor(t), path.length - 1)
           const local = t - segment
+
+          if (segment !== lastSegment) {
+            lastSegment = segment
+            playSound('hop')
+          }
 
           const from = segment === 0 ? origin : getTileSurface(path[segment - 1])
           const to = getTileSurface(path[segment])
@@ -89,6 +95,7 @@ export function usePawnMotion(playerId: PlayerId): PawnMotion {
     },
     [],
   )
+
 
   // Ăn mừng khi nhóm này vừa xây xong Biểu tượng Địa phương.
   useGameEvents((event) => {

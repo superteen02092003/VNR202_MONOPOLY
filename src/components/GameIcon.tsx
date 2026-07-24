@@ -34,6 +34,8 @@ export type GameIconName =
   | 'ticket'
   | 'trophy'
   | 'users'
+  | 'volume'
+  | 'volume-off'
 
 interface GameIconProps extends SVGProps<SVGSVGElement> {
   name: GameIconName
@@ -277,6 +279,18 @@ function IconPaths({ name }: { name: GameIconName }) {
         <>
           <circle {...common} cx="9" cy="9" r="3" />
           <path {...common} d="M3.8 19a5.2 5.2 0 0 1 10.4 0M15 7.2a2.8 2.8 0 0 1 0 5.5M16.4 14.5a4.7 4.7 0 0 1 3.8 4.5" />
+        </>
+      )
+    case 'volume':
+      return (
+        <>
+          <path {...common} d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </>
+      )
+    case 'volume-off':
+      return (
+        <>
+          <path {...common} d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" />
         </>
       )
     default:

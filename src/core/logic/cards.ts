@@ -168,6 +168,7 @@ function applyCardEffect(
 
     case 'stimulus': {
       credit(state, playerId, GAME_CONFIG.STIMULUS_AMOUNT, 'gói kích cầu từ ngân sách')
+      pushEvent(state, 'cash-gained', playerId, { amount: GAME_CONFIG.STIMULUS_AMOUNT })
       return done()
     }
 
@@ -192,6 +193,7 @@ function applyCardEffect(
         `${player.name} hoán đổi vị trí với ${other.name}.`,
         playerId,
       )
+      pushEvent(state, 'teleport', playerId)
       // Hoán đổi chỉ đổi chỗ đứng, nhóm vẫn được đổ xúc xắc như thường.
       return done(false)
     }
@@ -218,6 +220,7 @@ function applyCardEffect(
         `${getPropertyTile(target.tileId).name} được bảo hộ, chặn được một lần thâu tóm.`,
         playerId,
       )
+      pushEvent(state, 'shield-activate', playerId, { tileId: target.tileId })
       return done()
     }
 

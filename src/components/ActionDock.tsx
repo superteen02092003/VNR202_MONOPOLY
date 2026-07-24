@@ -9,6 +9,7 @@ import {
   formatPropertyPrice,
   getCardDefinition,
   getTile,
+  playSound,
 } from '../core'
 import type {
   CardTarget,
@@ -280,7 +281,13 @@ function TriviaPanel({
   useEffect(() => {
     if (!isTimerRunning) return
     const interval = window.setInterval(() => {
-      setRemaining((value) => Math.max(0, value - 1))
+      setRemaining((value) => {
+        const next = Math.max(0, value - 1)
+        if (next > 0 && next <= 5) {
+          playSound('tick-warning')
+        }
+        return next
+      })
     }, 1000)
     return () => window.clearInterval(interval)
   }, [isTimerRunning, question.id])
@@ -323,7 +330,11 @@ function TriviaPanel({
               <button
                 aria-label={isTimerRunning ? 'Tạm dừng câu hỏi' : 'Tiếp tục câu hỏi'}
                 className="trivia-timer-toggle"
-                onClick={isTimerRunning ? pauseTimer : resumeTimer}
+                onClick={() => {
+                  playSound('click')
+                  if (isTimerRunning) pauseTimer()
+                  else resumeTimer()
+                }}
                 type="button"
               >
                 <GameIcon name={isTimerRunning ? 'pause' : 'play'} size={16} />
@@ -348,7 +359,10 @@ function TriviaPanel({
               <button
                 className="trivia-option"
                 key={option}
-                onClick={() => onAnswer(index)}
+                onClick={() => {
+                  playSound('click')
+                  onAnswer(index)
+                }}
                 type="button"
               >
                 <span>{String.fromCharCode(65 + index)}</span>
@@ -363,7 +377,13 @@ function TriviaPanel({
               <GameIcon name="cards" size={17} />
               Trả lời đúng nhận 1 Thẻ Cơ hội
             </span>
-            <button onClick={() => onAnswer(null)} type="button">
+            <button
+              onClick={() => {
+                playSound('click')
+                onAnswer(null)
+              }}
+              type="button"
+            >
               Bỏ qua câu hỏi
             </button>
           </div>
@@ -436,7 +456,14 @@ function TriviaReview({
           </div>
         )}
 
-        <button className="primary-game-button" onClick={onContinue} type="button">
+        <button
+          className="primary-game-button"
+          onClick={() => {
+            playSound('click')
+            onContinue()
+          }}
+          type="button"
+        >
           Tiếp tục vòng chiến thuật
           <GameIcon name="chevron-right" size={20} />
         </button>
@@ -540,7 +567,10 @@ function CardInventory({ player }: { player: Player }) {
               className={`chance-card ${activeId === item.instanceId ? 'is-active' : ''}`}
               disabled={unavailable}
               key={item.instanceId}
-              onClick={() => setActiveId((current) => current === item.instanceId ? null : item.instanceId)}
+              onClick={() => {
+                playSound('click')
+                setActiveId((current) => current === item.instanceId ? null : item.instanceId)
+              }}
               title={
                 unavailable
                   ? 'Thẻ này chỉ dùng được khi đội đang ở ô Kẹt xe.'
@@ -940,12 +970,13 @@ function ContextCardAction({
         <strong>{definition.name}</strong>
       </div>
       <button
-        onClick={() =>
+        onClick={() => {
+          playSound('card-use')
           runAction(
             () => playCard(card.instanceId, { kind: 'none' }),
             `Đã dùng thẻ “${definition.name}”.`,
           )
-        }
+        }}
         type="button"
       >
         Dùng thẻ
@@ -1040,7 +1071,10 @@ function ActionButton({
     <button
       className={`game-action-button game-action-button--${variant} ${className}`}
       disabled={disabled}
-      onClick={() => runAction(action, successMessage)}
+      onClick={() => {
+        playSound('click')
+        runAction(action, successMessage)
+      }}
       type="button"
     >
       {icon && <span className="game-action-button__icon"><GameIcon name={icon} size={20} /></span>}
@@ -1056,6 +1090,13 @@ function ActionButton({
 function ResultOverlay() {
   const standings = useGameStore((state) => state.standings)
   const resetGame = useGameStore((state) => state.resetGame)
+
+  useEffect(() => {
+    if (standings?.length) {
+      playSound('fanfare')
+    }
+  }, [standings])
+
   if (!standings?.length) return null
 
   const winner = standings[0]
@@ -1100,7 +1141,14 @@ function ResultOverlay() {
             <span><GameIcon name="check" size={16} /> {winner.stats.correctAnswers} câu đúng</span>
             <span><GameIcon name="trophy" size={16} /> {winner.landmarks} biểu tượng</span>
           </div>
-          <button className="primary-game-button" onClick={() => resetGame()} type="button">
+          <button
+            className="primary-game-button"
+            onClick={() => {
+              playSound('click')
+              resetGame()
+            }}
+            type="button"
+          >
             Tạo ván đấu mới
             <GameIcon name="chevron-right" size={20} />
           </button>

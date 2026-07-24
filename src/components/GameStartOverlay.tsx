@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
+import { playSound } from '../core'
 import { useGameStore } from '../store/useGameStore'
 import { BrandLogo } from './BrandLogo'
 import { CharacterMark } from './CharacterMark'
@@ -43,6 +44,7 @@ export function GameStartOverlay() {
 
   const handleStartClick = () => {
     if (spinPhase === 'spinning') return
+    playSound('click')
 
     if (spinPhase === 'ready') {
       setSpinPhase('spinning')

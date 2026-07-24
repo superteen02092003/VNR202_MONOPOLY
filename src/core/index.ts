@@ -5,3 +5,5 @@ export * from './data/cards'
 export * from './data/characters'
 export * from './data/questions'
 export * from './logic'
+export * from './sound'
+
