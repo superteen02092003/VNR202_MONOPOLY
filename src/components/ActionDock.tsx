@@ -6,6 +6,7 @@ import {
   BUILD_LEVEL_LABEL,
   GAME_CONFIG,
   formatMoney,
+  formatPropertyPrice,
   getCardDefinition,
   getTile,
 } from '../core'
@@ -13,6 +14,7 @@ import type {
   CardTarget,
   CardTargetKind,
   CardEffect,
+  CardDefinition,
   Player,
   Question,
   Standing,
@@ -31,6 +33,23 @@ interface TriviaReviewState {
   question: Question
 }
 
+interface AutoActor {
+  characterId: Player['characterId']
+  color: string
+  name: string
+}
+
+type AutoOverlay =
+  | {
+      kind: 'money'
+      actor: AutoActor
+      amount: number
+      receiver: { amount: number; name: string } | null
+      title: string
+    }
+  | { kind: 'card'; actor: AutoActor; card: CardDefinition | null }
+  | { kind: 'turn'; actor: AutoActor }
+
 const CARD_ICON_BY_EFFECT: Record<CardEffect, GameIconName> = {
   'choose-dice': 'target',
   demolish: 'construction',
@@ -45,12 +64,147 @@ const CARD_ICON_BY_EFFECT: Record<CardEffect, GameIconName> = {
 
 export function ActionDock() {
   const phase = useGameStore((state) => state.phase)
+  const pending = useGameStore((state) => state.pendingAction)
   const currentQuestion = useGameStore((state) => state.currentQuestion)
   const answerTrivia = useGameStore((state) => state.answerTrivia)
   const triviaSeconds = useGameStore((state) => state.settings.triviaSeconds)
   const current = useGameStore(selectCurrentPlayer)
+  const payRent = useGameStore((state) => state.payRent)
+  const payTax = useGameStore((state) => state.payTax)
+  const drawChanceCard = useGameStore((state) => state.drawChanceCard)
+  const endTurn = useGameStore((state) => state.endTurn)
   const [review, setReview] = useState<TriviaReviewState | null>(null)
-  const { runAction } = useNotice()
+  const [autoOverlay, setAutoOverlay] = useState<AutoOverlay | null>(null)
+  const autoHandledKeyRef = useRef<string | null>(null)
+  const autoInFlightRef = useRef(false)
+  const autoFinishTimerRef = useRef<number | null>(null)
+  const { notify, runAction } = useNotice()
+
+  const automaticActionKey = useMemo(() => {
+    if (phase !== 'action' || !current) return null
+    switch (pending.kind) {
+      case 'rent':
+        return `rent:${current.id}:${pending.tileId}:${pending.rent}`
+      case 'tax':
+        return `tax:${current.id}:${pending.tileId}:${pending.amount}`
+      case 'chance':
+        return `chance:${current.id}`
+      case 'idle':
+        return `end-turn:${current.id}:${useGameStore.getState().turnCount}`
+      default:
+        return null
+    }
+  }, [current, pending, phase])
+
+  useEffect(() => {
+    return () => {
+      if (autoFinishTimerRef.current !== null) window.clearTimeout(autoFinishTimerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (
+      !automaticActionKey ||
+      !current ||
+      autoInFlightRef.current ||
+      autoHandledKeyRef.current === automaticActionKey
+    ) {
+      return
+    }
+
+    autoHandledKeyRef.current = automaticActionKey
+    const actionKind = pending.kind
+    const timer = window.setTimeout(() => {
+      autoInFlightRef.current = true
+      const beforeState = useGameStore.getState()
+      const actorBefore = beforeState.players.find((player) => player.id === current.id)
+      const ownerBefore =
+        actionKind === 'rent'
+          ? beforeState.players.find((player) => player.id === pending.ownerId)
+          : undefined
+      const actor = actorBefore
+        ? { characterId: actorBefore.characterId, color: actorBefore.color, name: actorBefore.name }
+        : { characterId: current.characterId, color: current.color, name: current.name }
+
+      const result =
+        actionKind === 'rent'
+          ? payRent()
+          : actionKind === 'tax'
+            ? payTax()
+            : actionKind === 'chance'
+              ? drawChanceCard()
+              : endTurn()
+
+      if (!result.ok) {
+        notify(result.reason ?? 'Không thể tự động xử lý tác vụ này.', 'error')
+        autoInFlightRef.current = false
+        return
+      }
+
+      const afterState = useGameStore.getState()
+      const actorAfter = afterState.players.find((player) => player.id === current.id)
+      const ownerAfter =
+        actionKind === 'rent'
+          ? afterState.players.find((player) => player.id === pending.ownerId)
+          : undefined
+
+      if (actionKind === 'chance') {
+        const drawnCard = actorAfter?.cards[actorAfter.cards.length - 1]
+        setAutoOverlay({
+          kind: 'card',
+          actor,
+          card: drawnCard ? getCardDefinition(drawnCard.effect) : null,
+        })
+        autoFinishTimerRef.current = window.setTimeout(() => {
+          setAutoOverlay(null)
+          autoInFlightRef.current = false
+          autoHandledKeyRef.current = null
+          useGameStore.getState().endTurn()
+        }, 2400)
+        return
+      }
+
+      if (actionKind === 'rent' || actionKind === 'tax') {
+        const actorDelta = (actorAfter?.cash ?? 0) - (actorBefore?.cash ?? 0)
+        const ownerDelta = ownerAfter && ownerBefore ? ownerAfter.cash - ownerBefore.cash : 0
+        setAutoOverlay({
+          kind: 'money',
+          actor,
+          amount: actorDelta,
+          receiver:
+            ownerAfter && ownerBefore
+              ? { amount: ownerDelta, name: ownerAfter.name }
+              : null,
+          title: actionKind === 'rent' ? 'Đã tự động trả phí lưu trú' : 'Đã tự động nộp thuế',
+        })
+        autoFinishTimerRef.current = window.setTimeout(() => {
+          setAutoOverlay(null)
+          autoInFlightRef.current = false
+          autoHandledKeyRef.current = null
+          useGameStore.getState().endTurn()
+        }, 1500)
+        return
+      }
+
+      setAutoOverlay({ kind: 'turn', actor })
+      autoFinishTimerRef.current = window.setTimeout(() => {
+        setAutoOverlay(null)
+        autoInFlightRef.current = false
+        autoHandledKeyRef.current = null
+      }, 850)
+    }, 430)
+
+    return () => window.clearTimeout(timer)
+  }, [
+    automaticActionKey,
+    current,
+    drawChanceCard,
+    endTurn,
+    notify,
+    payRent,
+    payTax,
+    pending,
+  ])
 
   const answer = useCallback(
     (answerIndex: number | null) => {
@@ -69,6 +223,14 @@ export function ActionDock() {
 
   if (review) {
     return <TriviaReview review={review} onContinue={() => setReview(null)} />
+  }
+
+  if (autoOverlay) {
+    return (
+      <div className="action-dock-wrap">
+        <AutomaticOverlay overlay={autoOverlay} />
+      </div>
+    )
   }
 
   if (phase === 'game-over') return <ResultOverlay />
@@ -285,7 +447,6 @@ function TriviaReview({
 
 function PreRollDock({ current }: { current: Player | undefined }) {
   const pending = useGameStore((state) => state.pendingAction)
-  const rollDice = useGameStore((state) => state.rollDice)
   const chooseTravelDestination = useGameStore((state) => state.chooseTravelDestination)
   const skipTravel = useGameStore((state) => state.skipTravel)
 
@@ -314,15 +475,6 @@ function PreRollDock({ current }: { current: Player | undefined }) {
         <p>Dùng Thẻ Cơ hội trước khi tung xúc xắc, hoặc tiếp tục ngay.</p>
       </div>
       <CardInventory player={current} />
-      <ActionButton
-        action={rollDice}
-        className="roll-button"
-        icon="dice"
-        label="LẮC XÚC XẮC"
-        sublabel="Tung 2 viên để di chuyển"
-        successMessage="Xúc xắc đang lăn…"
-        variant="primary"
-      />
     </section>
   )
 }
@@ -483,14 +635,9 @@ function MovementDock() {
 function ActionPrompt() {
   const pending = useGameStore((state) => state.pendingAction)
   const current = useGameStore(selectCurrentPlayer)
-  const endTurn = useGameStore((state) => state.endTurn)
   const confirmBuy = useGameStore((state) => state.confirmBuy)
   const confirmUpgrade = useGameStore((state) => state.confirmUpgrade)
-  const payRent = useGameStore((state) => state.payRent)
-  const confirmTakeover = useGameStore((state) => state.confirmTakeover)
-  const payTax = useGameStore((state) => state.payTax)
   const chooseFestivalTile = useGameStore((state) => state.chooseFestivalTile)
-  const drawChanceCard = useGameStore((state) => state.drawChanceCard)
   const payBail = useGameStore((state) => state.payBail)
   const declineAction = useGameStore((state) => state.declineAction)
 
@@ -506,7 +653,7 @@ function ActionPrompt() {
           title={getTile(pending.tileId).name}
         >
           <div className="decision-metrics">
-            <Metric label="Giá mua" value={formatMoney(pending.price)} />
+            <Metric label="Giá mua" value={formatPropertyPrice(pending.price)} />
             <Metric label="Tiền sau mua" value={formatMoney(current.cash - pending.price)} />
             <Metric label="Vị trí" value={`Ô ${pending.tileId}`} />
           </div>
@@ -517,7 +664,7 @@ function ActionPrompt() {
               action={confirmBuy}
               disabled={!pending.affordable}
               icon="check"
-              label={`Đầu tư ${formatMoney(pending.price)}`}
+              label={`Đầu tư ${formatPropertyPrice(pending.price)}`}
               successMessage="Đầu tư thành công!"
               variant="primary"
             />
@@ -562,76 +709,11 @@ function ActionPrompt() {
       )
 
     case 'rent': {
-      const owner = useGameStore.getState().players.find((player) => player.id === pending.ownerId)
-      return (
-        <DecisionCard
-          current={current}
-          eyebrow="PHÍ THAM QUAN · LƯU TRÚ"
-          icon="coin"
-          title={getTile(pending.tileId).name}
-        >
-          <div className="rent-route">
-            <div style={{ '--player-color': current.color } as CSSProperties}>
-              <CharacterMark characterId={current.characterId} />
-              <small>{current.name}</small>
-            </div>
-            <span className="rent-route__amount">− {formatMoney(pending.rent)}</span>
-            <GameIcon name="chevron-right" size={22} />
-            {owner && (
-              <div style={{ '--player-color': owner.color } as CSSProperties}>
-                <CharacterMark characterId={owner.characterId} />
-                <small>{owner.name}</small>
-              </div>
-            )}
-          </div>
-          <ContextCardAction effect="free-stay" player={current} />
-          <DecisionActions>
-            <ActionButton
-              action={payRent}
-              icon="coin"
-              label={pending.rent === 0 ? 'Xác nhận miễn phí' : `Nộp ${formatMoney(pending.rent)}`}
-              successMessage="Khoản lưu trú đã được xử lý."
-              variant="primary"
-            />
-            {pending.takeoverCost !== null ? (
-              <ActionButton
-                action={confirmTakeover}
-                disabled={current.cash < pending.takeoverCost}
-                icon="flag"
-                label={`Thâu tóm · ${formatMoney(pending.takeoverCost)}`}
-                successMessage="Thương vụ thâu tóm thành công!"
-                variant="accent"
-              />
-            ) : (
-              <span className="blocked-note">
-                <GameIcon name="lock" size={15} />
-                {pending.takeoverBlockedReason}
-              </span>
-            )}
-          </DecisionActions>
-        </DecisionCard>
-      )
+      return <AutoActionPending label="Đang tự động xử lý phí lưu trú…" />
     }
 
     case 'tax':
-      return (
-        <DecisionCard current={current} eyebrow="NGHĨA VỤ TÀI CHÍNH" icon="coin" title={getTile(pending.tileId).name}>
-          <div className="tax-amount">
-            <small>KHOẢN CẦN NỘP</small>
-            <strong>{formatMoney(pending.amount)}</strong>
-            <span>Số dư hiện tại: {formatMoney(current.cash)}</span>
-          </div>
-          <DecisionActions>
-            <ActionButton
-              action={payTax}
-              icon="check"
-              label="Xác nhận nộp"
-              successMessage="Khoản đóng góp đã được xử lý."
-              variant="primary"
-            />
-          </DecisionActions>
-        </DecisionCard>
-      )
+      return <AutoActionPending label="Đang tự động nộp thuế…" />
 
     case 'festival':
       return (
@@ -647,16 +729,7 @@ function ActionPrompt() {
       )
 
     case 'chance':
-      return (
-        <SimpleActionCard
-          action={drawChanceCard}
-          buttonLabel="Bốc Thẻ Cơ hội"
-          current={current}
-          icon="cards"
-          message="Một bất ngờ đang chờ đội của bạn. Túi thẻ chứa tối đa 3 lá."
-          title="Bạn đã dừng ở Ô Cơ hội"
-        />
-      )
+      return <AutoActionPending label="Đang rút Thẻ Cơ hội…" />
 
     case 'jail':
       return (
@@ -704,27 +777,72 @@ function ActionPrompt() {
       )
 
     default:
-      return (
-        <section className="action-dock turn-complete-dock">
-          <div className="turn-complete-dock__check">
-            <GameIcon name="check" size={24} />
-          </div>
-          <div>
-            <span className="section-kicker">VÒNG 04 · HOÀN TẤT</span>
-            <h2>Hành động đã được xử lý</h2>
-            <p>Kiểm tra lại thông tin và chuyển quyền cho đội tiếp theo.</p>
-          </div>
-          <ActionButton
-            action={endTurn}
-            className="end-turn-button"
-            icon="flag"
-            label="Chốt lượt"
-            sublabel="Sang đội tiếp theo"
-            variant="primary"
-          />
-        </section>
-      )
+      return <AutoActionPending label="Đang tự động chuyển lượt…" />
   }
+}
+
+function AutomaticOverlay({ overlay }: { overlay: AutoOverlay }) {
+  if (overlay.kind === 'card') {
+    return (
+      <section className="action-dock auto-action-card auto-card-reveal" style={{ '--player-color': overlay.actor.color } as CSSProperties}>
+        <div className="auto-action-card__avatar">
+          <CharacterMark characterId={overlay.actor.characterId} />
+        </div>
+        <div className="auto-action-card__copy">
+          <span className="section-kicker">THẺ CƠ HỘI TỰ ĐỘNG</span>
+          <h2>{overlay.card ? overlay.card.name : 'Túi thẻ đã đầy'}</h2>
+          <p>{overlay.card?.description ?? 'Đội đã có đủ số thẻ tối đa trong túi đồ.'}</p>
+          <small>{overlay.card ? `${overlay.actor.name} đã nhận thẻ mới.` : 'Lượt chơi tiếp tục tự động.'}</small>
+        </div>
+        <GameIcon name="cards" size={28} />
+      </section>
+    )
+  }
+
+  if (overlay.kind === 'money') {
+    const isGain = overlay.amount > 0
+    return (
+      <section className={`action-dock auto-action-card auto-money-feedback ${isGain ? 'is-gain' : 'is-payment'}`} style={{ '--player-color': overlay.actor.color } as CSSProperties}>
+        <div className="auto-action-card__avatar">
+          <CharacterMark characterId={overlay.actor.characterId} />
+        </div>
+        <div className="auto-action-card__copy">
+          <span className="section-kicker">GIAO DỊCH TỰ ĐỘNG</span>
+          <h2>{overlay.title}</h2>
+          <p>{overlay.actor.name} {isGain ? 'được cộng' : 'bị trừ'} tiền trong lượt này.</p>
+          {overlay.receiver && overlay.receiver.amount > 0 && (
+            <small>{overlay.receiver.name} được cộng {formatMoney(overlay.receiver.amount)}.</small>
+          )}
+        </div>
+        <strong className="auto-money-feedback__amount">
+          {overlay.amount > 0 ? '+' : '−'} {formatMoney(Math.abs(overlay.amount))}
+        </strong>
+      </section>
+    )
+  }
+
+  return (
+    <section className="action-dock auto-action-card auto-turn-feedback" style={{ '--player-color': overlay.actor.color } as CSSProperties}>
+      <div className="auto-action-card__avatar">
+        <CharacterMark characterId={overlay.actor.characterId} />
+      </div>
+      <div className="auto-action-card__copy">
+        <span className="section-kicker">VÒNG 04 · HOÀN TẤT</span>
+        <h2>Đã tự động chốt lượt</h2>
+        <p>Quyền chơi đang được chuyển cho đội tiếp theo.</p>
+      </div>
+      <GameIcon name="check" size={28} />
+    </section>
+  )
+}
+
+function AutoActionPending({ label }: { label: string }) {
+  return (
+    <section className="action-dock auto-action-pending">
+      <span className="auto-action-pending__spinner" />
+      <strong>{label}</strong>
+    </section>
+  )
 }
 
 function DecisionCard({

@@ -46,9 +46,16 @@ function BoardBase() {
   return (
     <group>
       {/* Mặt sân tròn tạo bóng nền mềm như một bộ board game đặt trên bàn. */}
-      <mesh position={[0, -0.43, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh position={[0, -0.43, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[BOARD_EDGE * 0.83, 64]} />
-        <meshStandardMaterial color="#b2dae4" roughness={0.92} metalness={0.02} />
+        <meshStandardMaterial
+          color="#cbe8ec"
+          roughness={0.92}
+          metalness={0.02}
+          transparent
+          opacity={0.38}
+          depthWrite={false}
+        />
       </mesh>
 
       {/* Bóng/viền tím xám dưới đế cho cảm giác isometric dày và chắc. */}

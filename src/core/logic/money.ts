@@ -1,15 +1,20 @@
 /** Định dạng số dư và giao dịch theo đơn vị K. */
 
-const VI = new Intl.NumberFormat('vi-VN')
+const US = new Intl.NumberFormat('en-US')
 
 /** 1500 → "1.500 K" — dùng cho bảng điều khiển Host và nhật ký. */
 export function formatMoney(amount: number): string {
-  return `${VI.format(Math.round(amount))} K`
+  return US.format(Math.round(amount) * 1000)
 }
 
 /** Dùng cho các nhãn lớn, dễ đọc từ xa. */
 export function formatMoneyLong(amount: number): string {
-  return `${VI.format(Math.round(amount))} K`
+  return formatMoney(amount)
+}
+
+/** Gia bat dong san van giu dang rut gon nhu `200K`, `240K`. */
+export function formatPropertyPrice(amount: number): string {
+  return `${US.format(Math.round(amount))}K`
 }
 
 /** Thêm dấu +/- phía trước, dùng cho hiệu ứng "tiền bay" ở Giai đoạn 3. */

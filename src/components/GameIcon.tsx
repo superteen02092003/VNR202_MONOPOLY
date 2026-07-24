@@ -20,6 +20,7 @@ export type GameIconName =
   | 'landmark'
   | 'lock'
   | 'map'
+  | 'money-stack'
   | 'pause'
   | 'plane'
   | 'play'
@@ -190,6 +191,15 @@ function IconPaths({ name }: { name: GameIconName }) {
         <>
           <path {...common} d="m4.5 6.5 5-2 5 2 5-2v13l-5 2-5-2-5 2Z" />
           <path {...common} d="M9.5 4.5v13M14.5 6.5v13" />
+        </>
+      )
+    case 'money-stack':
+      return (
+        <>
+          <path {...common} d="M5 8.5h12.5a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6.5a2 2 0 0 1 2-2Z" />
+          <path {...common} d="M7 8.5V6.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5.7a2 2 0 0 1-2 2h-.5" />
+          <path {...common} d="M5.5 12h11M5.5 15h11" />
+          <circle cx="11" cy="12.8" fill="currentColor" r="1.2" />
         </>
       )
     case 'pause':

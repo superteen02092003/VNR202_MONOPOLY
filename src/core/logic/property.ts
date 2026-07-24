@@ -6,7 +6,7 @@ import {
   getOwnedTileIds,
   ownsWholeRegion,
 } from './board'
-import { formatMoney } from './money'
+import { formatMoney, formatPropertyPrice } from './money'
 import { pushEvent, pushLog } from './log'
 import { getPlayer } from './players'
 import type { BuildLevel, GameCore, PlayerId, TileId } from '../types'
@@ -107,7 +107,7 @@ export function buyProperty(state: GameCore, playerId: PlayerId, tileId: TileId)
   pushLog(
     state,
     'property',
-    `${player.name} đầu tư ${tile.province} – ${tile.name} với giá ${formatMoney(tile.price)}.`,
+    `${player.name} đầu tư ${tile.province} – ${tile.name} với giá ${formatPropertyPrice(tile.price)}.`,
     playerId,
   )
   pushEvent(state, 'property-bought', playerId, { tileId, amount: tile.price })
@@ -261,7 +261,7 @@ export function takeoverProperty(state: GameCore, playerId: PlayerId, tileId: Ti
   pushLog(
     state,
     'property',
-    `${buyer.name} thâu tóm ${tile.province} – ${tile.name} từ ${seller.name} với giá ${formatMoney(cost)}.`,
+    `${buyer.name} thâu tóm ${tile.province} – ${tile.name} từ ${seller.name} với giá ${formatPropertyPrice(cost)}.`,
     playerId,
   )
   pushEvent(state, 'property-takeover', playerId, { tileId, amount: cost })

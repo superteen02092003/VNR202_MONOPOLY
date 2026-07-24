@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Edges, Html, RoundedBox } from '@react-three/drei'
 
-import { BOARD_3D, BUILD_LEVEL_LABEL, formatMoney } from '../core'
+import { BOARD_3D, BUILD_LEVEL_LABEL, formatPropertyPrice } from '../core'
 import type { Tile as TileData } from '../core'
 import { useGameStore } from '../store/useGameStore'
 import { getTileTransform } from './layout'
@@ -186,7 +186,7 @@ export function Tile({ tile }: TileProps) {
             </div>
             {isProperty && (
               <div style={{ color: '#596782', marginTop: 2 }}>
-                {tile.province} · {formatMoney(tile.price)}
+                {tile.province} · {formatPropertyPrice(tile.price)}
               </div>
             )}
             {property && property.level > 0 && (
