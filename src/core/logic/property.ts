@@ -48,6 +48,25 @@ export function getLiquidationValue(state: GameCore, tileId: TileId): number {
   return Math.round(refundBase * GAME_CONFIG.LIQUIDATION_RATE)
 }
 
+/** Tổng tiền có thể thu nếu thanh lý lần lượt toàn bộ công trình và ô đất. */
+export function getTotalLiquidationValue(state: GameCore, tileId: TileId): number {
+  const property = getPropertyState(state, tileId)
+  if (!property.ownerId || property.level === 0) return 0
+
+  const tile = getPropertyTile(tileId)
+  const region = REGION_BY_ID[tile.region]
+  let total = Math.round(tile.price * GAME_CONFIG.LIQUIDATION_RATE)
+
+  for (let level = 2; level <= property.level; level += 1) {
+    const upgradeCost =
+      region.upgradeCost *
+      GAME_CONFIG.UPGRADE_COST_MULTIPLIER[level as BuildLevel]
+    total += Math.round(upgradeCost * GAME_CONFIG.LIQUIDATION_RATE)
+  }
+
+  return total
+}
+
 /* ------------------------------------------------------------------ */
 /* Mua đất                                                             */
 /* ------------------------------------------------------------------ */
@@ -190,8 +209,6 @@ export function canTakeover(state: GameCore, playerId: PlayerId, tileId: TileId)
   if (property.level >= GAME_CONFIG.MAX_BUILD_LEVEL) {
     return fail('Đây là Biểu tượng Địa phương — bất khả xâm phạm.')
   }
-  if (property.shielded) return fail('Ô đất đang được thẻ Bảo Hộ Di Sản che chắn.')
-
   const cost = getTakeoverCost(state, tileId)
   if (cost === null) return fail('Không xác định được giá thâu tóm.')
   if (player.cash < cost) return fail('Nhóm không đủ tiền mặt để thâu tóm.')
@@ -206,6 +223,9 @@ export function canTakeover(state: GameCore, playerId: PlayerId, tileId: TileId)
 export function takeoverProperty(state: GameCore, playerId: PlayerId, tileId: TileId): boolean {
   const property = getPropertyState(state, tileId)
 
+  // Kiểm tra đầy đủ điều kiện trước để đội thiếu tiền không thể phá lá chắn miễn phí.
+  if (!canTakeover(state, playerId, tileId).ok) return false
+
   // Lá chắn hấp thụ đúng một lần thâu tóm rồi tan.
   if (property.shielded && property.ownerId) {
     property.shielded = false
@@ -219,8 +239,6 @@ export function takeoverProperty(state: GameCore, playerId: PlayerId, tileId: Ti
     )
     return false
   }
-
-  if (!canTakeover(state, playerId, tileId).ok) return false
 
   const cost = getTakeoverCost(state, tileId)
   if (cost === null || !property.ownerId) return false

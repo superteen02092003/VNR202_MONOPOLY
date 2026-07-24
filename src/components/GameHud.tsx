@@ -34,8 +34,24 @@ export function GameHud() {
 
   useEffect(() => {
     if (!isTimerRunning) return
-    const interval = window.setInterval(() => tick(1000), 1000)
-    return () => window.clearInterval(interval)
+
+    let lastTickAt = Date.now()
+    const syncTimer = () => {
+      const now = Date.now()
+      const elapsedMs = now - lastTickAt
+      lastTickAt = now
+      if (elapsedMs > 0) tick(elapsedMs)
+    }
+
+    const interval = window.setInterval(syncTimer, 1000)
+    window.addEventListener('focus', syncTimer)
+    document.addEventListener('visibilitychange', syncTimer)
+
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('focus', syncTimer)
+      document.removeEventListener('visibilitychange', syncTimer)
+    }
   }, [isTimerRunning, tick])
 
   return (
@@ -61,12 +77,19 @@ function TopBar({
   const isTimerRunning = useGameStore((state) => state.isTimerRunning)
   const pauseTimer = useGameStore((state) => state.pauseTimer)
   const resumeTimer = useGameStore((state) => state.resumeTimer)
+  const finishMatch = useGameStore((state) => state.finishMatch)
   const warning = useGameStore(selectIsEndgameWarning)
   const current = useGameStore(selectCurrentPlayer)
   const awaitingStart = phase === 'turn-end' && turnCount === 0
 
-  const minutes = Math.floor(timeRemainingMs / 60_000)
-  const seconds = Math.floor((timeRemainingMs % 60_000) / 1000)
+  const totalSeconds = Math.ceil(timeRemainingMs / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  const requestEarlyFinish = () => {
+    if (window.confirm('Kết thúc ván ngay và chốt bảng xếp hạng hiện tại?')) {
+      finishMatch()
+    }
+  }
 
   return (
     <header className="game-topbar">
@@ -126,6 +149,18 @@ function TopBar({
             </button>
           )}
         </div>
+
+        {!awaitingStart && (
+          <button
+            aria-label="Kết thúc ván sớm"
+            className="topbar-icon-button topbar-icon-button--danger"
+            onClick={requestEarlyFinish}
+            title="Kết thúc ván sớm"
+            type="button"
+          >
+            <GameIcon name="flag" size={20} />
+          </button>
+        )}
 
         <button
           aria-label={showActivity ? 'Ẩn nhật ký ván đấu' : 'Hiện nhật ký ván đấu'}

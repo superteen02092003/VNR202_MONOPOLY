@@ -4,6 +4,7 @@ import { pushEvent, pushLog } from './log'
 import { getPlayer } from './players'
 import {
   getLiquidationValue,
+  getTotalLiquidationValue,
   liquidateOneStep,
   releaseAllProperties,
   transferAllProperties,
@@ -13,7 +14,7 @@ import type { GameCore, PlayerId, TileId } from '../types'
 export interface SettlementResult {
   /** Số tiền chủ nợ thực nhận. */
   paid: number
-  /** Phần còn thiếu sau khi đã bán sạch tài sản. */
+  /** Phần còn thiếu khi tổng nguồn lực của nhóm không đủ trả nợ. */
   shortfall: number
   /** Nhóm trả tiền có bị phá sản không. */
   bankrupted: boolean
@@ -83,7 +84,32 @@ export function settleDebt(
 
   if (debt === 0) return { paid: 0, shortfall: 0, bankrupted: false, liquidations: 0 }
 
-  // 1. Gom đủ tiền mặt bằng cách thanh lý dần công trình.
+  // 1. Nếu bán toàn bộ vẫn không đủ, phá sản ngay để tài sản còn nguyên được
+  // bàn giao cho chủ nợ thay vì bị ngân hàng thu mua sạch trước đó.
+  const maximumFunds =
+    payer.cash +
+    getOwnedTileIds(state, payerId).reduce(
+      (sum, tileId) => sum + getTotalLiquidationValue(state, tileId),
+      0,
+    )
+
+  if (maximumFunds < debt) {
+    const paid = payer.cash
+    payer.cash = 0
+    if (creditorId) getPlayer(state, creditorId).cash += paid
+
+    pushLog(
+      state,
+      'money',
+      `${payer.name} chỉ trả được ${formatMoney(paid)} / ${formatMoney(debt)} — ${reason}.`,
+      payerId,
+    )
+
+    declareBankruptcy(state, payerId, creditorId)
+    return { paid, shortfall: debt - paid, bankrupted: true, liquidations: 0 }
+  }
+
+  // 2. Tổng nguồn lực đủ trả: thanh lý dần, ưu tiên giữ lại đất.
   let liquidations = 0
   while (payer.cash < debt) {
     const target = pickLiquidationTarget(state, payerId)
@@ -92,7 +118,7 @@ export function settleDebt(
     liquidations += 1
   }
 
-  // 2. Trả được đủ.
+  // 3. Trả đủ khoản nợ.
   if (payer.cash >= debt) {
     payer.cash -= debt
     if (creditorId) {
@@ -108,7 +134,7 @@ export function settleDebt(
     return { paid: debt, shortfall: 0, bankrupted: false, liquidations }
   }
 
-  // 3. Bán sạch vẫn không đủ → phá sản.
+  // Phòng vệ cho dữ liệu tài sản không hợp lệ hoặc thay đổi quy tắc thanh lý.
   const paid = payer.cash
   payer.cash = 0
   if (creditorId) getPlayer(state, creditorId).cash += paid

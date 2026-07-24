@@ -190,6 +190,8 @@ describe('Thâu tóm (Takeover)', () => {
     getPropertyState(state, HANOI).shielded = true
     getPlayer(state, 'p1').cash = 2000
 
+    expect(canTakeover(state, 'p1', HANOI).ok).toBe(true)
+
     // Lần 1: lá chắn hấp thụ, đất vẫn của p2.
     expect(takeoverProperty(state, 'p1', HANOI)).toBe(false)
     expect(getPropertyState(state, HANOI).ownerId).toBe('p2')
@@ -198,6 +200,16 @@ describe('Thâu tóm (Takeover)', () => {
     // Lần 2: không còn lá chắn, thương vụ thành công.
     expect(takeoverProperty(state, 'p1', HANOI)).toBe(true)
     expect(getPropertyState(state, HANOI).ownerId).toBe('p1')
+  })
+
+  it('không cho đội thiếu tiền phá lá chắn miễn phí', () => {
+    const state = createTestGame()
+    forceOwn(state, HANOI, 'p2', 2, 240)
+    getPropertyState(state, HANOI).shielded = true
+    getPlayer(state, 'p1').cash = 100
+
+    expect(takeoverProperty(state, 'p1', HANOI)).toBe(false)
+    expect(getPropertyState(state, HANOI).shielded).toBe(true)
   })
 
   it('không thâu tóm được khi thiếu tiền mặt', () => {

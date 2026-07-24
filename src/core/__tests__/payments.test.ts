@@ -69,7 +69,7 @@ describe('Thiếu tiền mặt', () => {
     expect(getPropertyState(state, DIEN_BIEN).ownerId).toBe('p1')
   })
 
-  it('phá sản khi bán sạch tài sản vẫn không đủ trả nợ', () => {
+  it('phá sản mà không bán sạch đất nếu tổng tài sản vẫn không đủ trả nợ', () => {
     const state = createTestGame()
     getPlayer(state, 'p1').cash = 100
     forceOwn(state, DIEN_BIEN, 'p1', 1, 60)
@@ -78,9 +78,24 @@ describe('Thiếu tiền mặt', () => {
 
     expect(result.bankrupted).toBe(true)
     expect(result.shortfall).toBeGreaterThan(0)
+    expect(result.liquidations).toBe(0)
     expect(getPlayer(state, 'p1').status).toBe('bankrupt')
     expect(getPlayer(state, 'p1').cash).toBe(0)
     expect(getPlayer(state, 'p1').cards).toHaveLength(0)
+    expect(getPropertyState(state, DIEN_BIEN).ownerId).toBe('p2')
+  })
+
+  it('settleDebt bàn giao nguyên cấp công trình cho chủ nợ khi phá sản', () => {
+    const state = createTestGame()
+    getPlayer(state, 'p1').cash = 100
+    forceOwn(state, HANOI, 'p1', 3, 440)
+
+    const result = settleDebt(state, 'p1', 5000, 'p2', 'tiền lưu trú khách sạn')
+
+    expect(result.bankrupted).toBe(true)
+    expect(result.liquidations).toBe(0)
+    expect(getPropertyState(state, HANOI).ownerId).toBe('p2')
+    expect(getPropertyState(state, HANOI).level).toBe(3)
   })
 
   it('chủ nợ nhận toàn bộ bất động sản của nhóm phá sản', () => {

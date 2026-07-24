@@ -23,10 +23,12 @@ describe('Ngân hàng câu hỏi VNR202', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('phủ đủ cả 3 chương của học phần', () => {
-    expect(QUESTIONS_BY_TOPIC['thanh-lap-dang'].length).toBeGreaterThan(0)
-    expect(QUESTIONS_BY_TOPIC['khang-chien'].length).toBeGreaterThan(0)
-    expect(QUESTIONS_BY_TOPIC['doi-moi'].length).toBeGreaterThan(0)
+  it('toàn bộ 62 câu đều thuộc Chương 3', () => {
+    expect(QUESTIONS).toHaveLength(62)
+    expect(QUESTIONS.every((q) => q.topic === 'doi-moi')).toBe(true)
+    expect(QUESTIONS_BY_TOPIC['doi-moi']).toHaveLength(62)
+    expect(QUESTIONS_BY_TOPIC['thanh-lap-dang']).toHaveLength(0)
+    expect(QUESTIONS_BY_TOPIC['khang-chien']).toHaveLength(0)
   })
 
   it('đáp án đúng không dồn hết vào một vị trí', () => {

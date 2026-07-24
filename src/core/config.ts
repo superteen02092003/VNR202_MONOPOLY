@@ -18,6 +18,7 @@ export const GAME_CONFIG = {
   MIN_PLAYERS: 2,
   MAX_PLAYERS: 5,
   STARTING_CASH: 1500,
+  STARTING_CASH_OPTIONS: [1000, 1500, 2000, 2500] as const,
 
   /* --- Ô Xuất phát --- */
   /** Đi ngang qua ô Xuất phát: nhà nước hỗ trợ vốn. */
@@ -73,6 +74,7 @@ export const GAME_CONFIG = {
 
   /* --- Hỏi đáp --- */
   DEFAULT_TRIVIA_SECONDS: 30,
+  TRIVIA_SECOND_OPTIONS: [15, 30, 45, 60] as const,
 
   /* --- Nhật ký --- */
   MAX_LOG_ENTRIES: 200,
