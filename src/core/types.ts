@@ -22,12 +22,8 @@ export type CharacterId =
   | 'masha'
   | 'pikachu'
   | 'doraemon'
-  | 'minion'
-  | 'kirby'
-  | 'baymax'
   | 'totoro'
   | 'conan'
-  | 'among-us'
 
 export interface Character {
   id: CharacterId

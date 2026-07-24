@@ -1,7 +1,8 @@
 # Model nhân vật 3D (.glb) — dùng ở Giai đoạn 2
 
-Đặt 10 file `.glb` vào đúng thư mục này, tên file phải khớp với `modelUrl`
-khai báo trong [`src/core/data/characters.ts`](../../src/core/data/characters.ts):
+Mỗi nhân vật trong [`src/core/data/characters.ts`](../../src/core/data/characters.ts)
+cần một file `.glb` trùng tên đặt trong thư mục này. Chỉ khai báo nhân vật đã có
+sẵn model — nhân vật thiếu file sẽ bị loại khỏi danh sách chọn.
 
 | Nhân vật               | Tên file             |
 | ---------------------- | -------------------- |
@@ -9,12 +10,11 @@ khai báo trong [`src/core/data/characters.ts`](../../src/core/data/characters.t
 | Masha                  | `masha.glb`          |
 | Pikachu                | `pikachu.glb`        |
 | Doraemon               | `doraemon.glb`       |
-| Minion                 | `minion.glb`         |
-| Kirby                  | `kirby.glb`          |
-| Baymax                 | `baymax.glb`         |
 | Totoro                 | `totoro.glb`         |
-| Snoopy                 | `snoopy.glb`         |
-| Phi hành gia Among Us  | `among-us.glb`       |
+| Conan                  | `conan.glb`          |
+
+Muốn thêm nhân vật mới: tải model, đặt file vào đây, rồi thêm một mục vào
+`CharacterId` (types.ts) và mảng `CHARACTERS` (characters.ts).
 
 ## Lưu ý khi tải model từ Sketchfab
 

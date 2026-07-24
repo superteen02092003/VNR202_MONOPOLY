@@ -66,6 +66,9 @@ export function Tile({ tile }: TileProps) {
 
   const geometryRotationY = isCorner ? 0 : rotationY
   const artworkRotationY = isCorner ? rotationY : 0
+  // Bàn cờ chỉ nhìn từ một phía (máy chiếu). Ô ở cạnh xa và hai góc trên có mặt
+  // quay ngược camera nên chữ bị lộn ngược — xoay nội dung texture 180° để đọc xuôi.
+  const flipText = Math.cos(rotationY) < -0.01
 
   return (
     <group
@@ -163,6 +166,7 @@ export function Tile({ tile }: TileProps) {
         <TileArtwork
           accentColor={accentColor}
           depth={depth}
+          flipText={flipText}
           isCorner={isCorner}
           tile={tile}
           width={width}

@@ -8,7 +8,7 @@ import type { PlayerSetup } from '../../core/logic/setup'
 const SETUPS: PlayerSetup[] = [
   { id: 'p1', name: 'Nhóm 1', characterId: 'doraemon' },
   { id: 'p2', name: 'Nhóm 2', characterId: 'pikachu' },
-  { id: 'p3', name: 'Nhóm 3', characterId: 'kirby' },
+  { id: 'p3', name: 'Nhóm 3', characterId: 'totoro' },
 ]
 
 const store = () => useGameStore.getState()
@@ -86,8 +86,8 @@ describe('Khởi tạo ván', () => {
   it('từ chối ván có hai nhóm chọn trùng nhân vật', () => {
     store().resetGame(1)
     const result = store().startGame([
-      { id: 'p1', name: 'Nhóm 1', characterId: 'kirby' },
-      { id: 'p2', name: 'Nhóm 2', characterId: 'kirby' },
+      { id: 'p1', name: 'Nhóm 1', characterId: 'totoro' },
+      { id: 'p2', name: 'Nhóm 2', characterId: 'totoro' },
     ])
     expect(result.ok).toBe(false)
     expect(store().phase).toBe('lobby')
@@ -95,7 +95,7 @@ describe('Khởi tạo ván', () => {
 
   it('từ chối ván chỉ có một nhóm', () => {
     store().resetGame(1)
-    const result = store().startGame([{ id: 'p1', name: 'Nhóm 1', characterId: 'kirby' }])
+    const result = store().startGame([{ id: 'p1', name: 'Nhóm 1', characterId: 'totoro' }])
     expect(result.ok).toBe(false)
   })
 

@@ -1,11 +1,8 @@
 import { Component, Suspense } from 'react'
 import type { ReactNode } from 'react'
-import { Html } from '@react-three/drei'
 
 import { getCharacter } from '../core'
 import type { PlayerId } from '../core'
-import { CharacterMark } from '../components/CharacterMark'
-import { GameIcon } from '../components/GameIcon'
 import { useGameStore } from '../store/useGameStore'
 import { CharacterModel } from './CharacterModel'
 import { PlaceholderPawn } from './PlaceholderPawn'
@@ -75,40 +72,10 @@ export function Pawn({ playerId }: PawnProps) {
       )}
 
       {/*
-        Tên nhóm nổi trên đầu quân cờ.
-        KHÔNG dùng distanceFactor: với camera trực giao, drei lấy camera.zoom làm
-        hệ số nên nhãn bị phóng to gấp hàng chục lần. Giữ kích thước cố định theo
-        pixel màn hình vừa đúng vừa dễ đọc khi chiếu máy chiếu.
+        Không gắn nhãn tên nổi trên đầu quân cờ nữa: khi quân ở mép trên/dưới bàn cờ,
+        nhãn chiếu đè lên bảng đội và khu xúc xắc. Nhận diện đội đã có nhờ chính model
+        3D, vòng sáng màu đội khi tới lượt, và avatar ở bảng đội phía trên.
       */}
-      <Html position={[0, 0.82, 0]} center pointerEvents="none" zIndexRange={[8, 0]}>
-        <div
-          style={{
-            background: bankrupt
-              ? 'rgba(235,232,226,0.93)'
-              : 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,242,233,0.97))',
-            color: bankrupt ? '#777583' : '#26334f',
-            border: `2px solid ${bankrupt ? '#9d99a7' : player.color}`,
-            borderRadius: 999,
-            padding: '3px 10px',
-            fontSize: 12,
-            fontWeight: 800,
-            whiteSpace: 'nowrap',
-            boxShadow: isCurrent
-              ? `0 3px 0 rgba(99,96,112,0.28), 0 0 0 3px rgba(255,255,255,0.72), 0 7px 16px ${player.color}55`
-              : '0 3px 0 rgba(99,96,112,0.24), 0 6px 12px rgba(66,82,110,0.2)',
-            fontFamily: '"Arial Rounded MT Bold", "Segoe UI", system-ui, sans-serif',
-            userSelect: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-          }}
-        >
-          <CharacterMark characterId={player.characterId} />
-          <span>{player.name}</span>
-          {player.status === 'jailed' && <GameIcon name="lock" size={12} />}
-          {bankrupt && <GameIcon name="close" size={12} />}
-        </div>
-      </Html>
     </group>
   )
 }

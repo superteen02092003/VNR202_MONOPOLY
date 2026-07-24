@@ -1,8 +1,9 @@
 import type { Character, CharacterId } from '../types'
 
 /**
- * 10 nhân vật 3D cho 5 nhóm lựa chọn.
- * File .glb đặt trong /public/models — xem public/models/README.md (Giai đoạn 2).
+ * Các nhân vật 3D cho 5 nhóm lựa chọn.
+ * Chỉ giữ những nhân vật đã có sẵn file .glb trong /public/models —
+ * xem public/models/README.md (Giai đoạn 2).
  */
 export const CHARACTERS: Character[] = [
   {
@@ -43,9 +44,6 @@ export const CHARACTERS: Character[] = [
     // Model tĩnh (không có animation) — quân cờ vẫn hiện nhưng đứng im.
     transform: { scale: 0.47 },
   },
-  { id: 'minion', name: 'Minion', modelUrl: '/models/minion.glb', color: '#fde047' },
-  { id: 'kirby', name: 'Kirby', modelUrl: '/models/kirby.glb', color: '#f9a8d4' },
-  { id: 'baymax', name: 'Baymax', modelUrl: '/models/baymax.glb', color: '#e2e8f0' },
   {
     id: 'totoro',
     name: 'Totoro',
@@ -62,7 +60,6 @@ export const CHARACTERS: Character[] = [
     // Model tĩnh (không có animation) — quân cờ đứng im. Cao ~30 đơn vị nên thu nhỏ mạnh.
     transform: { scale: 0.032 },
   },
-  { id: 'among-us', name: 'Phi hành gia Among Us', modelUrl: '/models/among-us.glb', color: '#ef4444' },
 ]
 
 export const CHARACTER_BY_ID: Record<CharacterId, Character> = Object.fromEntries(

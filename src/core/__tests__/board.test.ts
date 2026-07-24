@@ -55,9 +55,12 @@ describe('Bàn cờ', () => {
 })
 
 describe('Nhân vật', () => {
-  it('có đủ 10 model, id và màu không trùng nhau', () => {
-    expect(CHARACTERS).toHaveLength(10)
-    expect(new Set(CHARACTERS.map((c) => c.id)).size).toBe(10)
-    expect(new Set(CHARACTERS.map((c) => c.modelUrl)).size).toBe(10)
+  it('đủ nhân vật cho số nhóm tối đa, id/model/màu không trùng nhau', () => {
+    // Chỉ giữ nhân vật đã có file .glb; cần ít nhất MAX_PLAYERS để mỗi nhóm một nhân vật.
+    expect(CHARACTERS.length).toBeGreaterThanOrEqual(GAME_CONFIG.MAX_PLAYERS)
+    const count = CHARACTERS.length
+    expect(new Set(CHARACTERS.map((c) => c.id)).size).toBe(count)
+    expect(new Set(CHARACTERS.map((c) => c.modelUrl)).size).toBe(count)
+    expect(new Set(CHARACTERS.map((c) => c.color)).size).toBe(count)
   })
 })
