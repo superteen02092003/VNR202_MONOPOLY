@@ -13,8 +13,10 @@ interface PropertySceneryProps {
  * khi người chơi mua đất, cụm này nhường chỗ cho công trình theo cấp thật.
  */
 export function PropertyScenery({ tileId }: PropertySceneryProps) {
+  const ownerId = useGameStore((state) => state.properties[tileId]?.ownerId)
   const level = useGameStore((state) => state.properties[tileId]?.level ?? 0)
-  if (level > 0) return null
+  // Ô đất chưa có chủ chỉ hiển thị tên/giá; công trình xuất hiện sau khi mua.
+  if (!ownerId || level > 0) return null
 
   const tile = getPropertyTile(tileId)
   const accent = REGION_BY_ID[tile.region].color

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Edges, Html, RoundedBox } from '@react-three/drei'
 
-import { BOARD_3D, BUILD_LEVEL_LABEL, REGION_BY_ID, formatMoney } from '../core'
+import { BOARD_3D, BUILD_LEVEL_LABEL, formatMoney } from '../core'
 import type { Tile as TileData } from '../core'
 import { useGameStore } from '../store/useGameStore'
 import { getTileTransform } from './layout'
@@ -50,7 +50,6 @@ export function Tile({ tile }: TileProps) {
   const faceDepth = depth * 0.975
 
   const isProperty = tile.type === 'property'
-  const region = isProperty ? REGION_BY_ID[tile.region] : null
   const special = isProperty ? null : SPECIAL_STYLE[tile.type]
   const isActive = activeTileId === tile.id
 
@@ -65,10 +64,19 @@ export function Tile({ tile }: TileProps) {
       : owner?.color ?? (isProperty ? '#9b98a8' : '#ffffff')
 
   const geometryRotationY = isCorner ? 0 : rotationY
-  // Bàn cờ chỉ nhìn từ một phía (máy chiếu). Để chữ MỌI ô luôn đọc thẳng về camera,
-  // xoay nhãn ngược đúng bằng góc hình học của ô → tổng góc quay quanh Y bằng 0.
-  // Ô sâu hơn rộng (2.4 > 1.5) nên nhãn nằm ngang ở cạnh trái/phải vẫn đủ chỗ.
-  const artworkRotationY = -geometryRotationY
+  // Cạnh nào của bàn cờ (0 dưới · 1 trái · 2 trên · 3 phải); góc là -1.
+  const side = isCorner ? -1 : Math.floor(tile.id / 8)
+  // Ô địa danh: chọn góc xoay để chữ chạy dọc theo cạnh & đọc thuận trên từng cạnh.
+  //  cạnh trái (1):  xoay 180° so với ô (đã lật lại theo yêu cầu)
+  //  cạnh phải (3):  xoay theo ô
+  //  cạnh trên/dưới (0,2) + ô đặc biệt/góc: xoay ngược để chữ luôn thẳng đứng.
+  const artworkRotationY = !isProperty
+    ? -geometryRotationY
+    : side === 1
+      ? Math.PI
+      : side === 3
+        ? 0
+        : -geometryRotationY
 
   return (
     <group
@@ -123,24 +131,6 @@ export function Tile({ tile }: TileProps) {
           <planeGeometry args={[width * 0.9, depth * 0.9]} />
           <meshBasicMaterial color="#fff8bf" transparent opacity={0.2} />
         </mesh>
-      )}
-
-      {/* Dải màu vùng miền, nằm ở mép trong (phía tâm bàn cờ) của ô đất */}
-      {region && (
-        <RoundedBox
-          args={[width * 0.88, 0.035, depth * 0.2]}
-          radius={0.012}
-          smoothness={2}
-          position={[0, BOARD_3D.TILE_HEIGHT + 0.012, -depth / 2 + depth * 0.12]}
-          castShadow
-        >
-          <meshStandardMaterial
-            color={region.color}
-            roughness={0.4}
-            emissive={region.color}
-            emissiveIntensity={0.045}
-          />
-        </RoundedBox>
       )}
 
       {/* Ribbon màu đội: quyền sở hữu rõ mà không nhuộm kín mặt ô. */}

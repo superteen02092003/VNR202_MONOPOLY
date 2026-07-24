@@ -6,7 +6,7 @@ import {
   SRGBColorSpace,
 } from 'three'
 
-import { BOARD_3D, formatMoney } from '../core'
+import { BOARD_3D } from '../core'
 import type { Tile } from '../core'
 
 interface TileArtworkProps {
@@ -18,6 +18,20 @@ interface TileArtworkProps {
 }
 
 /**
+ * Canvas ô ĐỊA DANH: dạng ĐỨNG, tỉ lệ khớp mặt ô (rộng 1.5 : sâu 2.4) để nhãn
+ * lấp gần kín ô. Nhờ vậy tên + giá được vẽ thật to. Ô ở cạnh trái/phải sẽ được
+ * `Tile.tsx` xoay theo ô nên chữ chạy dọc theo cạnh như bàn Business Tour.
+ */
+const PROP_W = 440
+const PROP_H = 700
+const PROP_ASPECT = PROP_W / PROP_H
+
+/** Canvas ô ĐẶC BIỆT / GÓC: vuông, chữ luôn thẳng đứng. */
+const SPECIAL_SIZE = 512
+
+const LABEL_FONT = '"Arial Rounded MT Bold", "Segoe UI", system-ui, sans-serif'
+
+/**
  * Nhãn ô cờ được vẽ vào CanvasTexture rồi đặt trực tiếp lên mặt bàn.
  *
  * Khác với drei <Html>, texture này thuộc cùng không gian WebGL với quân cờ:
@@ -25,7 +39,6 @@ interface TileArtworkProps {
  */
 export function TileArtwork({
   accentColor,
-  depth,
   isCorner,
   tile,
   width,
@@ -40,16 +53,15 @@ export function TileArtwork({
   if (!texture) return null
 
   const isProperty = tile.type === 'property'
-  const artworkWidth = isProperty ? width * 0.88 : isCorner ? width * 0.75 : width * 0.84
-  const artworkDepth = isProperty
-    ? depth * 0.44
-    : isCorner
-      ? depth * 0.58
-      : depth * 0.58
+  // Ô địa danh: nhãn lấp gần kín ô (rộng theo cạnh, sâu theo tỉ lệ canvas đứng).
+  // Ô đặc biệt/góc: nhãn vuông, căn giữa.
+  const aspect = isProperty ? PROP_ASPECT : 1
+  const artworkWidth = isProperty ? width * 0.95 : isCorner ? width * 0.8 : width * 0.95
+  const artworkDepth = artworkWidth / aspect
 
   return (
     <mesh
-      position={[0, BOARD_3D.TILE_HEIGHT + 0.05, isProperty ? -depth * 0.085 : 0]}
+      position={[0, BOARD_3D.TILE_HEIGHT + 0.05, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
       renderOrder={2}
       userData={{ role: 'tile-artwork', tileId: tile.id }}
@@ -74,19 +86,27 @@ export function TileArtwork({
 function createTileTexture(tile: Tile, accentColor: string, isCorner: boolean) {
   if (typeof document === 'undefined') return null
 
+  const isProperty = tile.type === 'property'
+  const w = isProperty ? PROP_W : SPECIAL_SIZE
+  const h = isProperty ? PROP_H : SPECIAL_SIZE
+
   const canvas = document.createElement('canvas')
-  canvas.width = 512
-  canvas.height = 320
+  canvas.width = w
+  canvas.height = h
   const context = canvas.getContext('2d')
   if (!context) return null
 
-  context.clearRect(0, 0, canvas.width, canvas.height)
-  drawCard(context, canvas.width, canvas.height, isCorner)
+  context.clearRect(0, 0, w, h)
+  drawCard(context, w, h, isCorner)
 
   if (tile.type === 'property') {
-    drawPropertyLabel(context, tile.province, formatMoney(tile.price), accentColor)
+    // Cạnh TRÁI (1) và TRÊN (2) có nhãn bị lật so với hướng canvas → vẽ nội dung
+    // từ đáy canvas lên để GIÁ (dải màu) vẫn nằm ở mép trong (phía sân) mọi cạnh.
+    const side = Math.floor(tile.id / 8)
+    const flip = side === 1 || side === 2
+    drawPropertyLabel(context, w, h, tile.province, formatTilePrice(tile.price), accentColor, flip)
   } else {
-    drawSpecialLabel(context, tile.type, tile.name, accentColor, isCorner)
+    drawSpecialLabel(context, w, tile.type, tile.name, accentColor, isCorner)
   }
 
   const texture = new CanvasTexture(canvas)
@@ -99,73 +119,128 @@ function createTileTexture(tile: Tile, accentColor: string, isCorner: boolean) {
   return texture
 }
 
+/** "140" → "140K" theo phong cách bảng Business Tour, dễ đọc từ xa. */
+function formatTilePrice(price: number): string {
+  return `${price.toLocaleString('vi-VN')}K`
+}
+
+const CARD_INSET = 16
+
 function drawCard(
   context: CanvasRenderingContext2D,
   width: number,
   height: number,
   isCorner: boolean,
 ) {
-  const inset = 14
-  const radius = isCorner ? 44 : 34
+  const radius = isCorner ? 46 : 36
+  const cardHeight = height - CARD_INSET * 2
 
   context.save()
-  context.shadowColor = 'rgba(56, 68, 92, 0.25)'
+  context.shadowColor = 'rgba(56, 68, 92, 0.20)'
   context.shadowBlur = 18
-  context.shadowOffsetY = 12
-  roundedRect(context, inset, inset, width - inset * 2, height - inset * 2 - 10, radius)
+  context.shadowOffsetY = 10
+  roundedRect(context, CARD_INSET, CARD_INSET, width - CARD_INSET * 2, cardHeight, radius)
   context.fillStyle = '#fffdf8'
   context.fill()
   context.restore()
 
-  roundedRect(context, inset, inset, width - inset * 2, height - inset * 2 - 10, radius)
+  roundedRect(context, CARD_INSET, CARD_INSET, width - CARD_INSET * 2, cardHeight, radius)
   context.fillStyle = '#fffdf8'
   context.fill()
-  context.lineWidth = 10
+  context.lineWidth = 9
   context.strokeStyle = 'rgba(255, 255, 255, 0.98)'
   context.stroke()
-
-  roundedRect(context, inset + 7, inset + 7, width - (inset + 7) * 2, height - inset * 2 - 24, radius - 8)
   context.lineWidth = 3
-  context.strokeStyle = 'rgba(91, 100, 123, 0.17)'
+  context.strokeStyle = 'rgba(91, 100, 123, 0.14)'
   context.stroke()
 }
 
+/**
+ * Nhãn ô đất trên canvas ĐỨNG: dải màu vùng miền mang tên tỉnh ở mép TRONG,
+ * số giá thật lớn lấp phần còn lại. `flip` = true thì đảo đầu (cho cạnh trên).
+ */
+/**
+ * Bố cục thẻ ô đất (tính từ MÉP TRONG — phía sân — ra ngoài):
+ *  1. Dải màu vùng miền mang GIÁ (nhỏ) ở mép trong.
+ *  2. TÊN địa danh (to, đậm) ngay phía trên giá.
+ *  3. Nửa ngoài để trống = ĐẤT xây công trình (nhà đặt lên đây, không đè chữ).
+ * `flip` = true thì vẽ ngược từ đáy canvas lên (cho cạnh trái & cạnh trên đã xoay).
+ */
 function drawPropertyLabel(
   context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
   province: string,
   price: string,
   accentColor: string,
+  flip: boolean,
 ) {
+  const radius = 36
+  const cardWidth = width - CARD_INSET * 2
+  const cardHeight = height - CARD_INSET * 2
+
   context.textAlign = 'center'
   context.textBaseline = 'middle'
 
-  context.fillStyle = '#44506a'
-  context.font = '900 52px "Arial Rounded MT Bold", "Segoe UI", sans-serif'
-  fitText(context, province.toLocaleUpperCase('vi-VN'), 256, 112, 420, 52)
+  // Đổi khoảng cách d (tính từ mép trong) sang toạ độ y trên canvas.
+  const yAt = (d: number) => (flip ? height - CARD_INSET - d : CARD_INSET + d)
 
-  context.fillStyle = accentColor
-  context.font = '900 66px "Arial Rounded MT Bold", "Segoe UI", sans-serif'
-  fitText(context, price, 256, 216, 390, 66)
+  const nameLines = splitLabel(context, province.toLocaleUpperCase('vi-VN'), cardWidth - 36, 60)
+  const twoLines = nameLines.length > 1
 
+  // (1) Dải màu vùng miền ở mép trong, mang GIÁ tiền (nhỏ, trắng).
+  const stripDepth = 108
+  const stripTop = Math.min(yAt(0), yAt(stripDepth))
+  context.save()
+  roundedRect(context, CARD_INSET, CARD_INSET, cardWidth, cardHeight, radius)
+  context.clip()
   context.fillStyle = accentColor
-  roundedRect(context, 142, 270, 228, 8, 4)
-  context.fill()
+  context.fillRect(CARD_INSET, stripTop, cardWidth, stripDepth)
+  context.restore()
+
+  context.fillStyle = '#ffffff'
+  context.font = `900 76px ${LABEL_FONT}`
+  fitText(context, price, width / 2, yAt(stripDepth / 2), cardWidth - 44, 76)
+
+  // (2) TÊN địa danh — to, đậm, ngay trên dải giá.
+  context.fillStyle = '#1f2b45'
+  const nameFont = twoLines ? 84 : 106
+  const lineGap = nameFont + 12
+  const nameCenter = stripDepth + (twoLines ? 208 : 186)
+  nameLines.forEach((line, index) => {
+    const d = nameCenter + (index - (nameLines.length - 1) / 2) * lineGap
+    context.font = `900 ${nameFont}px ${LABEL_FONT}`
+    fitText(context, line, width / 2, yAt(d), cardWidth - 30, nameFont)
+  })
+
+  // (3) Nửa ngoài để trống — dành cho công trình 3D.
 }
 
 function drawSpecialLabel(
   context: CanvasRenderingContext2D,
+  width: number,
   type: Tile['type'],
   name: string,
   accentColor: string,
   isCorner: boolean,
 ) {
-  drawSpecialIcon(context, type, 256, isCorner ? 112 : 105, isCorner ? 62 : 55, accentColor)
+  const iconY = isCorner ? 196 : 186
+  const iconSize = isCorner ? 116 : 104
+  drawSpecialIcon(context, type, width / 2, iconY, iconSize, accentColor)
 
   context.fillStyle = accentColor
   context.textAlign = 'center'
   context.textBaseline = 'middle'
-  context.font = '900 46px "Arial Rounded MT Bold", "Segoe UI", sans-serif'
-  fitText(context, name.toLocaleUpperCase('vi-VN'), 256, isCorner ? 232 : 226, 420, 46)
+
+  const nameLines = splitLabel(context, name.toLocaleUpperCase('vi-VN'), width - 84, 66)
+  const nameFont = nameLines.length > 1 ? 60 : 72
+  const lineGap = nameFont + 12
+  const baseY = isCorner ? 372 : 366
+  nameLines.forEach((line, index) => {
+    const cy = baseY + (index - (nameLines.length - 1) / 2) * lineGap
+    context.font = `900 ${nameFont}px ${LABEL_FONT}`
+    fitText(context, line, width / 2, cy, width - 72, nameFont)
+  })
 }
 
 function drawSpecialIcon(
@@ -270,6 +345,37 @@ function drawSpark(context: CanvasRenderingContext2D, x: number, y: number, radi
   context.quadraticCurveTo(x - radius * 0.16, y + radius * 0.16, x - radius, y)
   context.quadraticCurveTo(x - radius * 0.16, y - radius * 0.16, x, y - radius)
   context.stroke()
+}
+
+/**
+ * Chia nhãn thành 1 hoặc 2 dòng cân đối.
+ * Nếu vừa một dòng ở cỡ chữ gốc thì giữ nguyên; nếu không và có nhiều từ,
+ * tách hai dòng sao cho dòng dài nhất hẹp nhất có thể (ưu tiên đọc rõ).
+ */
+function splitLabel(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  baseFont: number,
+): string[] {
+  context.font = `900 ${baseFont}px ${LABEL_FONT}`
+  if (context.measureText(text).width <= maxWidth) return [text]
+
+  const words = text.split(/\s+/).filter(Boolean)
+  if (words.length < 2) return [text]
+
+  let best: [string, string] | null = null
+  let bestScore = Infinity
+  for (let i = 1; i < words.length; i += 1) {
+    const first = words.slice(0, i).join(' ')
+    const second = words.slice(i).join(' ')
+    const score = Math.max(context.measureText(first).width, context.measureText(second).width)
+    if (score < bestScore) {
+      bestScore = score
+      best = [first, second]
+    }
+  }
+  return best ?? [text]
 }
 
 function fitText(

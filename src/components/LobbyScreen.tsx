@@ -10,15 +10,13 @@ import { CharacterMark } from './CharacterMark'
 import { GameIcon } from './GameIcon'
 import { useNotice } from './useNotice'
 
-const DEFAULT_TEAM_NAMES = ['Sao Vàng', 'Tiên Phong', 'Đổi Mới', 'Thống Nhất', 'Khát Vọng']
+const DEFAULT_TEAM_NAMES = ['Nhóm 1', 'Nhóm 2', 'Nhóm 3', 'Nhóm 4', 'Nhóm 5']
 
 export function LobbyScreen() {
   const startGame = useGameStore((state) => state.startGame)
-  const settings = useGameStore((state) => state.settings)
-  const updateSettings = useGameStore((state) => state.updateSettings)
   const { notify } = useNotice()
 
-  const [count, setCount] = useState<number>(GAME_CONFIG.MAX_PLAYERS)
+  const count = GAME_CONFIG.MAX_PLAYERS
   const [names, setNames] = useState(() => [...DEFAULT_TEAM_NAMES])
   const [picks, setPicks] = useState<CharacterId[]>(() =>
     CHARACTERS.slice(0, GAME_CONFIG.MAX_PLAYERS).map((character) => character.id),
@@ -50,156 +48,29 @@ export function LobbyScreen() {
 
   return (
     <main className="lobby-shell">
-      <div className="lobby-shell__aurora lobby-shell__aurora--one" />
-      <div className="lobby-shell__aurora lobby-shell__aurora--two" />
-      <div className="lobby-shell__grid" />
-
       <header className="lobby-header">
         <BrandLogo />
-        <div className="lobby-header__meta">
-          <span className="live-dot" />
-          <span>Host Console</span>
-          <span className="lobby-header__divider" />
-          <span>Dành cho lớp học VNR202</span>
-        </div>
       </header>
 
       <div className="lobby-layout">
-        <section className="lobby-hero">
-          <div className="lobby-hero__badge">
-            <GameIcon name="sparkles" size={16} />
-            Board game kiến thức · 3D local multiplayer
-          </div>
-          <h1>
-            Khởi động hành trình
-            <span> kiến tạo Việt Nam</span>
-          </h1>
-          <p>
-            Chọn đội hình, chốt thời lượng và sẵn sàng chinh phục 32 địa danh trên
-            bản đồ kinh doanh Việt Nam.
-          </p>
-
-          <div className="lobby-highlights">
-            <div>
-              <strong>32</strong>
-              <span>ô hành trình</span>
-            </div>
-            <div>
-              <strong>5</strong>
-              <span>đội tranh tài</span>
-            </div>
-            <div>
-              <strong>62</strong>
-              <span>câu hỏi VNR202</span>
-            </div>
-          </div>
-
-          <BoardPreview />
-        </section>
-
         <form className="setup-card" onSubmit={submit}>
           <div className="setup-card__header">
             <div>
               <span className="section-kicker">PHÒNG CHỜ</span>
-              <h2>Thiết lập ván đấu</h2>
             </div>
             <div className="setup-card__step">01 / 01</div>
           </div>
 
-          <div className="setup-settings">
-            <fieldset className="setup-fieldset">
-              <legend>
-                <GameIcon name="users" size={16} />
-                Số đội chơi
-              </legend>
-              <div className="segmented-control" role="group" aria-label="Số đội chơi">
-                {Array.from(
-                  { length: GAME_CONFIG.MAX_PLAYERS - GAME_CONFIG.MIN_PLAYERS + 1 },
-                  (_, index) => GAME_CONFIG.MIN_PLAYERS + index,
-                ).map((value) => (
-                  <button
-                    aria-pressed={count === value}
-                    className={count === value ? 'is-active' : ''}
-                    key={value}
-                    onClick={() => setCount(value)}
-                    type="button"
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="setup-fieldset setup-fieldset--wide">
-              <legend>
-                <GameIcon name="clock" size={16} />
-                Thời lượng
-              </legend>
-              <div className="duration-control" role="group" aria-label="Thời lượng ván đấu">
-                {GAME_CONFIG.MATCH_MINUTE_OPTIONS.map((minutes) => (
-                  <button
-                    aria-pressed={settings.matchMinutes === minutes}
-                    className={settings.matchMinutes === minutes ? 'is-active' : ''}
-                    key={minutes}
-                    onClick={() => updateSettings({ matchMinutes: minutes })}
-                    type="button"
-                  >
-                    {minutes}
-                    <small>phút</small>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-          </div>
-
-          <div className="setup-settings setup-settings--secondary">
-            <fieldset className="setup-fieldset">
-              <legend>
-                <GameIcon name="banknote" size={16} />
-                Vốn khởi điểm / đội
-              </legend>
-              <div className="setup-choice-control" role="group" aria-label="Vốn khởi điểm mỗi đội">
-                {GAME_CONFIG.STARTING_CASH_OPTIONS.map((amount) => (
-                  <button
-                    aria-pressed={settings.startingCash === amount}
-                    className={settings.startingCash === amount ? 'is-active' : ''}
-                    key={amount}
-                    onClick={() => updateSettings({ startingCash: amount })}
-                    type="button"
-                  >
-                    {amount.toLocaleString('vi-VN')}
-                    <small>triệu</small>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="setup-fieldset">
-              <legend>
-                <GameIcon name="help" size={16} />
-                Thời gian mỗi câu hỏi
-              </legend>
-              <div className="setup-choice-control" role="group" aria-label="Thời gian mỗi câu hỏi">
-                {GAME_CONFIG.TRIVIA_SECOND_OPTIONS.map((seconds) => (
-                  <button
-                    aria-pressed={settings.triviaSeconds === seconds}
-                    className={settings.triviaSeconds === seconds ? 'is-active' : ''}
-                    key={seconds}
-                    onClick={() => updateSettings({ triviaSeconds: seconds })}
-                    type="button"
-                  >
-                    {seconds}
-                    <small>giây</small>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+          <div className="setup-summary" aria-label="Cấu hình mặc định">
+            <span><strong>{count}</strong><small>đội</small></span>
+            <span><strong>{GAME_CONFIG.DEFAULT_MATCH_MINUTES}</strong><small>phút</small></span>
+            <span><strong>{GAME_CONFIG.STARTING_CASH.toLocaleString('vi-VN')}</strong><small>K / đội</small></span>
+            <span><strong>{GAME_CONFIG.DEFAULT_TRIVIA_SECONDS}</strong><small>giây / câu</small></span>
           </div>
 
           <div className="team-section-heading">
             <div>
               <span className="section-kicker">ĐỘI HÌNH</span>
-              <p>Đặt tên và chọn đại diện cho từng đội</p>
             </div>
             <span>{count} / {GAME_CONFIG.MAX_PLAYERS} đội</span>
           </div>
@@ -243,13 +114,7 @@ export function LobbyScreen() {
                         value={picks[index]}
                       >
                         {CHARACTERS.map((option) => (
-                          <option
-                            disabled={picks
-                              .slice(0, count)
-                              .some((pick, itemIndex) => itemIndex !== index && pick === option.id)}
-                            key={option.id}
-                            value={option.id}
-                          >
+                          <option key={option.id} value={option.id}>
                             {option.name}
                           </option>
                         ))}
@@ -259,35 +124,6 @@ export function LobbyScreen() {
                 </div>
               )
             })}
-          </div>
-
-          <div className="setup-options">
-            <label className="setup-toggle">
-              <input
-                checked={settings.allowTakeover}
-                onChange={(event) => updateSettings({ allowTakeover: event.target.checked })}
-                type="checkbox"
-              />
-              <span className="setup-toggle__control" />
-              <span>
-                <strong>Cho phép thâu tóm</strong>
-                <small>Đội có thể mua lại đất đối thủ</small>
-              </span>
-            </label>
-            <label className="setup-toggle">
-              <input
-                checked={settings.requireRegionForLandmark}
-                onChange={(event) =>
-                  updateSettings({ requireRegionForLandmark: event.target.checked })
-                }
-                type="checkbox"
-              />
-              <span className="setup-toggle__control" />
-              <span>
-                <strong>Chế độ chiến lược</strong>
-                <small>Cần trọn vùng để xây biểu tượng</small>
-              </span>
-            </label>
           </div>
 
           <button className="start-match-button" type="submit">
@@ -305,54 +141,8 @@ export function LobbyScreen() {
 
       <footer className="lobby-footer">
         <span>VNR202 · Lịch sử Đảng Cộng sản Việt Nam</span>
-        <span>Business Voyage · Vietnam Edition · Prototype 2026</span>
+        <span>Business Voyage · Prototype 2026</span>
       </footer>
     </main>
-  )
-}
-
-function BoardPreview() {
-  return (
-    <div className="board-preview" aria-hidden="true">
-      <div className="board-preview__halo" />
-      <div className="board-preview__board">
-        <div className="board-preview__side board-preview__side--top">
-          {Array.from({ length: 7 }, (_, index) => <i key={index} />)}
-        </div>
-        <div className="board-preview__side board-preview__side--right">
-          {Array.from({ length: 7 }, (_, index) => <i key={index} />)}
-        </div>
-        <div className="board-preview__side board-preview__side--bottom">
-          {Array.from({ length: 7 }, (_, index) => <i key={index} />)}
-        </div>
-        <div className="board-preview__side board-preview__side--left">
-          {Array.from({ length: 7 }, (_, index) => <i key={index} />)}
-        </div>
-        <span className="board-preview__corner board-preview__corner--one">
-          <GameIcon name="flag" size={18} />
-        </span>
-        <span className="board-preview__corner board-preview__corner--two">
-          <GameIcon name="sparkles" size={18} />
-        </span>
-        <span className="board-preview__corner board-preview__corner--three">
-          <GameIcon name="plane" size={18} />
-        </span>
-        <span className="board-preview__corner board-preview__corner--four">
-          <GameIcon name="cards" size={18} />
-        </span>
-        <div className="board-preview__center">
-          <span>VNR</span>
-          <strong>202</strong>
-          <small>BUSINESS VOYAGE</small>
-        </div>
-        <span className="board-preview__pawn board-preview__pawn--one" />
-        <span className="board-preview__pawn board-preview__pawn--two" />
-        <span className="board-preview__pawn board-preview__pawn--three" />
-      </div>
-      <div className="board-preview__caption">
-        <span><GameIcon name="map" size={16} /> 8 vùng kinh tế</span>
-        <span><GameIcon name="trophy" size={16} /> 1 ngôi vô địch</span>
-      </div>
-    </div>
   )
 }

@@ -78,6 +78,7 @@ function TopBar({
   const pauseTimer = useGameStore((state) => state.pauseTimer)
   const resumeTimer = useGameStore((state) => state.resumeTimer)
   const finishMatch = useGameStore((state) => state.finishMatch)
+  const resetGame = useGameStore((state) => state.resetGame)
   const warning = useGameStore(selectIsEndgameWarning)
   const current = useGameStore(selectCurrentPlayer)
   const awaitingStart = phase === 'turn-end' && turnCount === 0
@@ -88,6 +89,15 @@ function TopBar({
   const requestEarlyFinish = () => {
     if (window.confirm('Kết thúc ván ngay và chốt bảng xếp hạng hiện tại?')) {
       finishMatch()
+    }
+  }
+  const requestReset = () => {
+    if (
+      window.confirm(
+        'Chơi lại từ đầu? Toàn bộ tiến trình ván hiện tại sẽ bị xóa và quay về phòng chờ.',
+      )
+    ) {
+      resetGame()
     }
   }
 
@@ -161,6 +171,16 @@ function TopBar({
             <GameIcon name="flag" size={20} />
           </button>
         )}
+
+        <button
+          aria-label="Chơi lại từ đầu"
+          className="topbar-icon-button"
+          onClick={requestReset}
+          title="Chơi lại từ đầu (xóa tiến trình, về phòng chờ)"
+          type="button"
+        >
+          <GameIcon name="restart" size={20} />
+        </button>
 
         <button
           aria-label={showActivity ? 'Ẩn nhật ký ván đấu' : 'Hiện nhật ký ván đấu'}

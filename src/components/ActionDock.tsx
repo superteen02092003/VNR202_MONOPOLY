@@ -130,16 +130,6 @@ function TriviaPanel({
   }, [onAnswer, remaining])
 
   const progress = Math.max(0, Math.min(1, remaining / seconds))
-  const difficultyLabel = {
-    easy: 'CƠ BẢN',
-    hard: 'THỬ THÁCH',
-    medium: 'NÂNG CAO',
-  }[question.difficulty]
-  const topicLabel = {
-    'doi-moi': 'ĐỔI MỚI',
-    'khang-chien': 'KHÁNG CHIẾN',
-    'thanh-lap-dang': 'THÀNH LẬP ĐẢNG',
-  }[question.topic]
 
   return (
     <div className="modal-layer modal-layer--trivia">
@@ -152,7 +142,6 @@ function TriviaPanel({
             <GameIcon name="help" size={24} />
           </span>
           <div>
-            <small>VÒNG 01 · HỎI ĐÁP VNR202</small>
             <strong id="trivia-title">Thử thách kiến thức</strong>
           </div>
           {current && (
@@ -168,11 +157,6 @@ function TriviaPanel({
 
         <div className="trivia-modal__content">
           <div className="trivia-meta">
-            <div>
-              <span>{difficultyLabel}</span>
-              <span>·</span>
-              <span>{topicLabel}</span>
-            </div>
             <div className="trivia-timer-controls">
               <button
                 aria-label={isTimerRunning ? 'Tạm dừng câu hỏi' : 'Tiếp tục câu hỏi'}

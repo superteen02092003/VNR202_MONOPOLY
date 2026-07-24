@@ -118,18 +118,25 @@ const FACES: Record<CharacterId, ReactNode> = {
   ),
   conan: (
     <>
-      <ellipse cx="20" cy="22" rx="12" ry="12.5" fill="#ffdcbd" />
-      <path d="M8 19 C8 6 32 6 32 19 C29 12 25 9 20 9 C15 9 11 12 8 19 Z" fill="#20304a" />
-      <path d="M8 19 q-1.5 6 0.6 10.5 l2.2 -2.2 q-2 -4 -0.8 -8.3 z" fill="#20304a" />
-      <path d="M32 19 q1.5 6 -0.6 10.5 l-2.2 -2.2 q2 -4 0.8 -8.3 z" fill="#20304a" />
-      <g fill="none" stroke="#10151f" strokeWidth="1.5">
-        <circle cx="15" cy="21" r="4.2" />
-        <circle cx="25" cy="21" r="4.2" />
-        <line x1="19.2" y1="21" x2="20.8" y2="21" />
+      <path d="M7 40 Q8 31 14 28.5 H26 Q32 31 33 40 Z" fill="#3978cf" stroke="#1d4f9c" strokeWidth="0.8" />
+      <path d="M14 29 L20 35 L26 29 L23 27.5 H17 Z" fill="#e8f1ff" />
+      <path d="M18 33 L20 36 L22 33 L20 30.5 Z" fill="#2c63b5" />
+      <ellipse cx="20" cy="22" rx="10.8" ry="12.2" fill="#ffdcbd" stroke="#d79e83" strokeWidth="0.6" />
+      <path d="M8.2 19 C8 12 11.2 6.5 16 5.5 L18 1.8 L20 5 L23.5 2.8 L24.5 6 L29 4.2 L28.7 8.3 L32 7.5 L31.2 18.8 C28.5 13.5 25.5 10.5 20 10.3 C14.5 10.5 11.3 13.5 8.2 19 Z" fill="#1e2b46" />
+      <path d="M8.5 17.5 L12.5 8.5 L14.5 13.5 L17.5 6.5 L19.5 12.3 L22.8 6.8 L24.5 13 L28.8 8.8 L31.2 17.5" fill="#1e2b46" />
+      <path d="M9 17 q-1.2 6 0.4 10.2 l2.3 -2 q-1.5 -4 -0.8 -7.2 Z" fill="#1e2b46" />
+      <path d="M31 17 q1.2 6 -0.4 10.2 l-2.3 -2 q1.5 -4 0.8 -7.2 Z" fill="#1e2b46" />
+      <g fill="none" stroke="#111827" strokeWidth="1.55">
+        <circle cx="15" cy="21.5" r="4.5" />
+        <circle cx="25" cy="21.5" r="4.5" />
+        <line x1="19.4" y1="21.5" x2="20.6" y2="21.5" />
       </g>
-      <circle cx="15" cy="21" r="1.3" fill="#26313f" />
-      <circle cx="25" cy="21" r="1.3" fill="#26313f" />
-      <path d="M17 28 q3 2 6 0" fill="none" stroke="#c07f6a" strokeWidth="1.1" strokeLinecap="round" />
+      <circle cx="15" cy="21.5" r="1.35" fill="#172235" />
+      <circle cx="25" cy="21.5" r="1.35" fill="#172235" />
+      <circle cx="15.5" cy="21" r="0.45" fill="#ffffff" />
+      <circle cx="25.5" cy="21" r="0.45" fill="#ffffff" />
+      <path d="M20 23.2 l-1 2.8 h2" fill="none" stroke="#bd806c" strokeWidth="0.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M17.2 28 q2.8 1.8 5.6 0" fill="none" stroke="#a94f59" strokeWidth="1.05" strokeLinecap="round" />
     </>
   ),
 }

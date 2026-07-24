@@ -12,7 +12,7 @@ export const CHARACTERS: Character[] = [
     id: 'hello-kitty',
     name: 'Hello Kitty',
     modelUrl: '/models/hello-kitty.glb',
-    color: '#ff6b9d',
+    color: '#e11d48',
     // Model gốc chỉ có 2 clip đặt tên chung chung "Kitty" / "Kitty.001" nên bộ dò
     // theo từ khóa không nhận ra — chỉ định tay: Kitty.001 (morph nhẹ) cho Idle,
     // Kitty (tay/chân đung đưa) cho Jump; Celebrate mượn lại Jump vì không có clip riêng.
@@ -22,7 +22,7 @@ export const CHARACTERS: Character[] = [
     id: 'masha',
     name: 'Masha',
     modelUrl: '/models/masha.glb',
-    color: '#f472b6',
+    color: '#7c3aed',
     // Model có bộ clip phong phú (Idle, RunWithBall, WinLoop...) nhưng tên không
     // khớp từ khóa jump/celebrate nên chỉ định tay.
     clips: { idle: 'Idle', jump: 'RunWithBall', celebrate: 'WinLoop' },
@@ -31,7 +31,7 @@ export const CHARACTERS: Character[] = [
     id: 'pikachu',
     name: 'Pikachu',
     modelUrl: '/models/pikachu.glb',
-    color: '#facc15',
+    color: '#f59e0b',
     // Clip đặt tên chuẩn (Idle / Jump / Dance) — bộ dò tự khớp.
   },
   {
@@ -39,21 +39,21 @@ export const CHARACTERS: Character[] = [
     id: 'doraemon',
     name: 'Doraemon',
     modelUrl: '/models/doraemon.glb',
-    color: '#38bdf8',
+    color: '#0284c7',
   },
   {
     // Model diorama tĩnh (nhiều totoro + bãi cỏ), không có animation.
     id: 'totoro',
     name: 'Totoro',
     modelUrl: '/models/totoro.glb',
-    color: '#94a3b8',
+    color: '#16a34a',
   },
   {
     // Model tĩnh (không có animation) — quân cờ đứng im.
     id: 'conan',
     name: 'Conan',
     modelUrl: '/models/conan.glb',
-    color: '#3b82f6',
+    color: '#ea580c',
   },
 ]
 
