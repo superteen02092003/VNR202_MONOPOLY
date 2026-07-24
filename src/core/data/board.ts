@@ -59,8 +59,8 @@ export const BOARD: Tile[] = [
   {
     id: 12,
     type: 'tax',
-    name: 'Quỹ Vì người nghèo',
-    description: 'Doanh nghiệp đóng góp an sinh xã hội.',
+    name: 'Thuế',
+    description: 'Thuế.',
     amount: 100,
   },
   prop(13, 'bac-trung-bo', 'Nghệ An', 'Khu di tích Kim Liên', 180, 16),
@@ -102,8 +102,8 @@ export const BOARD: Tile[] = [
   {
     id: 28,
     type: 'tax',
-    name: 'Thuế thu nhập doanh nghiệp',
-    description: 'Nộp thuế theo doanh thu tham quan trong kỳ.',
+    name: 'Thuế',
+    description: 'Thuế.',
     amount: 200,
   },
   prop(29, 'dong-nam-bo', 'Tây Ninh', 'Căn cứ Trung ương Cục miền Nam', 350, 35),

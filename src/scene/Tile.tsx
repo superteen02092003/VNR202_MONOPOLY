@@ -70,13 +70,10 @@ export function Tile({ tile }: TileProps) {
   //  cạnh trái (1):  xoay 180° so với ô (đã lật lại theo yêu cầu)
   //  cạnh phải (3):  xoay theo ô
   //  cạnh trên/dưới (0,2) + ô đặc biệt/góc: xoay ngược để chữ luôn thẳng đứng.
-  const artworkRotationY = !isProperty
-    ? -geometryRotationY
-    : side === 1
-      ? Math.PI
-      : side === 3
-        ? 0
-        : -geometryRotationY
+  const alignedRotationY = side === 1 ? Math.PI : side === 3 ? 0 : -geometryRotationY
+  const artworkRotationY = isProperty || tile.type === 'tax'
+    ? alignedRotationY
+    : -geometryRotationY
 
   return (
     <group

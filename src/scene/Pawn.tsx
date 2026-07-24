@@ -64,7 +64,11 @@ export function Pawn({ playerId }: PawnProps) {
               <PlaceholderPawn color={player.color} animation={animation} dimmed={bankrupt} />
             }
           >
-            <CharacterModel character={character} animation={animation} />
+            <CharacterModel
+              character={character}
+              animation={animation}
+              frontmost={character.id === 'masha'}
+            />
           </Suspense>
         </ModelBoundary>
       ) : (
