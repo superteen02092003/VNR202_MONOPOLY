@@ -9,6 +9,11 @@ import { useGameStore } from '../store/useGameStore'
 const DIE_SIZE = 0.42
 const HALF = DIE_SIZE / 2
 const TRAY_Y = BOARD_3D.TILE_HEIGHT
+/**
+ * Đẩy khu xúc xắc về nửa dưới sân (phía camera). Logo "BUSINESS VOYAGE" nằm ở
+ * nửa trên tâm bàn cờ nên nếu xúc xắc rơi ngay giữa sẽ bị thẻ logo che mất.
+ */
+const DICE_Z = 1.35
 const REST_SPEED = 0.12
 /** Quá thời gian này mà xúc xắc chưa nằm yên thì chốt kết quả luôn. */
 const SETTLE_TIMEOUT_MS = 4200
@@ -91,7 +96,7 @@ function Die({ index, onRest, registerThrow, registerAlign }: DieProps) {
   const [ref, api] = useBox<Mesh>(() => ({
     mass: 1,
     args: [DIE_SIZE, DIE_SIZE, DIE_SIZE],
-    position: [startX, TRAY_Y + 0.3, 0],
+    position: [startX, TRAY_Y + 0.3, DICE_Z],
     angularDamping: 0.22,
     linearDamping: 0.06,
     material: { friction: 0.35, restitution: 0.32 },
@@ -121,7 +126,7 @@ function Die({ index, onRest, registerThrow, registerAlign }: DieProps) {
       moving.current = true
 
       api.wakeUp()
-      api.position.set(startX, TRAY_Y + 3.1, (Math.random() - 0.5) * 0.7)
+      api.position.set(startX, TRAY_Y + 3.1, DICE_Z + (Math.random() - 0.5) * 0.7)
       api.rotation.set(Math.random() * 6, Math.random() * 6, Math.random() * 6)
       api.velocity.set((Math.random() - 0.5) * 3.4, -5.5, (Math.random() - 0.5) * 3.4)
       api.angularVelocity.set(
@@ -138,7 +143,7 @@ function Die({ index, onRest, registerThrow, registerAlign }: DieProps) {
       api.velocity.set(0, 0, 0)
       api.angularVelocity.set(0, 0, 0)
       api.quaternion.set(target.x, target.y, target.z, target.w)
-      api.position.set(startX, TRAY_Y + HALF, index === 0 ? -0.25 : 0.25)
+      api.position.set(startX, TRAY_Y + HALF, DICE_Z + (index === 0 ? -0.25 : 0.25))
       api.sleep()
     })
   }, [api, index, registerAlign, registerThrow, startX])

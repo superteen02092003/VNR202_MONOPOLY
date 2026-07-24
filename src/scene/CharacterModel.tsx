@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useAnimations, useGLTF } from '@react-three/drei'
-import { Box3, LoopRepeat, type Group } from 'three'
+import { Box3, LoopRepeat, Vector3, type Group } from 'three'
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js'
 
 import type { Character, CharacterAnimation } from '../core'
@@ -10,6 +10,9 @@ interface CharacterModelProps {
   character: Character
   animation: CharacterAnimation
 }
+
+/** Chiều cao mục tiêu (đơn vị bàn cờ) để mọi quân cờ 3D cao xấp xỉ bằng nhau. */
+const TARGET_HEIGHT = 0.95
 
 /**
  * Nhân vật 3D nạp từ file .glb, chạy hoạt ảnh bằng hook useAnimations của drei.
@@ -22,12 +25,19 @@ export function CharacterModel({ character, animation }: CharacterModelProps) {
   const { scene, animations } = useGLTF(character.modelUrl)
 
   // Clone theo bộ xương để nhiều quân cờ dùng chung một file không đè lên nhau.
-  const { groundOffset, model } = useMemo(() => {
+  // Đồng thời tự chuẩn hoá tỉ lệ: đo hộp bao THẬT (đã gồm mọi phép biến đổi node
+  // của Sketchfab) rồi co model về TARGET_HEIGHT. Nhờ vậy không phải đoán scale
+  // cho từng file — model to như Doraemon hay cao 76 đơn vị như Masha đều tự vừa.
+  const { autoScale, groundOffset, model } = useMemo(() => {
     const clonedModel = cloneSkeleton(scene)
     clonedModel.updateMatrixWorld(true)
     const bounds = new Box3().setFromObject(clonedModel)
+    const size = bounds.getSize(new Vector3())
+    const height = size.y
+    const auto = Number.isFinite(height) && height > 1e-4 ? TARGET_HEIGHT / height : 1
     return {
       model: clonedModel,
+      autoScale: auto,
       groundOffset: Number.isFinite(bounds.min.y) ? -bounds.min.y : 0,
     }
   }, [scene])
@@ -46,7 +56,8 @@ export function CharacterModel({ character, animation }: CharacterModelProps) {
     }
   }, [actions, names, animation, character.clips])
 
-  const scale = character.transform?.scale ?? 1
+  // transform.scale giờ chỉ là hệ số tinh chỉnh (mặc định 1) trên nền scale tự động.
+  const scale = autoScale * (character.transform?.scale ?? 1)
   const rotationY = character.transform?.rotationY ?? 0
   const yOffset = character.transform?.yOffset ?? 0
 

@@ -5,6 +5,8 @@ import type { Character, CharacterId } from '../types'
  * Chỉ giữ những nhân vật đã có sẵn file .glb trong /public/models —
  * xem public/models/README.md (Giai đoạn 2).
  */
+// Tỉ lệ mỗi model được CharacterModel tự chuẩn hoá về cùng chiều cao, nên ở đây
+// chỉ cần khai báo clip animation (nếu tên không tự dò được) và tinh chỉnh khi cần.
 export const CHARACTERS: Character[] = [
   {
     id: 'hello-kitty',
@@ -15,8 +17,6 @@ export const CHARACTERS: Character[] = [
     // theo từ khóa không nhận ra — chỉ định tay: Kitty.001 (morph nhẹ) cho Idle,
     // Kitty (tay/chân đung đưa) cho Jump; Celebrate mượn lại Jump vì không có clip riêng.
     clips: { idle: 'Kitty.001', jump: 'Kitty', celebrate: 'Kitty' },
-    // Model cao ~4.5 đơn vị trong file gốc, quy về ~1 đơn vị cho khớp bàn cờ.
-    transform: { scale: 0.22 },
   },
   {
     id: 'masha',
@@ -24,41 +24,36 @@ export const CHARACTERS: Character[] = [
     modelUrl: '/models/masha.glb',
     color: '#f472b6',
     // Model có bộ clip phong phú (Idle, RunWithBall, WinLoop...) nhưng tên không
-    // khớp từ khóa jump/celebrate nên chỉ định tay. Cao ~77 đơn vị → thu rất nhỏ.
+    // khớp từ khóa jump/celebrate nên chỉ định tay.
     clips: { idle: 'Idle', jump: 'RunWithBall', celebrate: 'WinLoop' },
-    transform: { scale: 0.013 },
   },
   {
     id: 'pikachu',
     name: 'Pikachu',
     modelUrl: '/models/pikachu.glb',
     color: '#facc15',
-    // Clip đặt tên chuẩn (Idle / Jump / Dance) — bộ dò tự khớp, chỉ cần chỉnh tỉ lệ.
-    transform: { scale: 0.75 },
+    // Clip đặt tên chuẩn (Idle / Jump / Dance) — bộ dò tự khớp.
   },
   {
+    // Model tĩnh (không có animation) — quân cờ vẫn hiện nhưng đứng im.
     id: 'doraemon',
     name: 'Doraemon',
     modelUrl: '/models/doraemon.glb',
     color: '#38bdf8',
-    // Model tĩnh (không có animation) — quân cờ vẫn hiện nhưng đứng im.
-    transform: { scale: 0.47 },
   },
   {
+    // Model diorama tĩnh (nhiều totoro + bãi cỏ), không có animation.
     id: 'totoro',
     name: 'Totoro',
     modelUrl: '/models/totoro.glb',
     color: '#94a3b8',
-    // Model diorama tĩnh (nhiều totoro + bãi cỏ), không có animation.
-    transform: { scale: 0.35 },
   },
   {
+    // Model tĩnh (không có animation) — quân cờ đứng im.
     id: 'conan',
     name: 'Conan',
     modelUrl: '/models/conan.glb',
     color: '#3b82f6',
-    // Model tĩnh (không có animation) — quân cờ đứng im. Cao ~30 đơn vị nên thu nhỏ mạnh.
-    transform: { scale: 0.032 },
   },
 ]
 
