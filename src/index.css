@@ -769,6 +769,10 @@ button:disabled {
   gap: 10px;
 }
 
+.setup-settings--secondary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .setup-fieldset {
   min-width: 0;
   margin: 0;
@@ -789,7 +793,8 @@ button:disabled {
 }
 
 .segmented-control,
-.duration-control {
+.duration-control,
+.setup-choice-control {
   display: grid;
   gap: 4px;
 }
@@ -802,8 +807,13 @@ button:disabled {
   grid-template-columns: repeat(5, 1fr);
 }
 
+.setup-choice-control {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .segmented-control button,
-.duration-control button {
+.duration-control button,
+.setup-choice-control button {
   min-width: 0;
   height: 35px;
   padding: 0 5px;
@@ -819,26 +829,30 @@ button:disabled {
     color 160ms ease;
 }
 
-.duration-control button {
+.duration-control button,
+.setup-choice-control button {
   display: grid;
   place-content: center;
   font-size: 0.8rem;
   line-height: 0.8rem;
 }
 
-.duration-control small {
+.duration-control small,
+.setup-choice-control small {
   font-size: 0.48rem;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .segmented-control button:hover,
-.duration-control button:hover {
+.duration-control button:hover,
+.setup-choice-control button:hover {
   transform: translateY(-1px);
 }
 
 .segmented-control button.is-active,
-.duration-control button.is-active {
+.duration-control button.is-active,
+.setup-choice-control button.is-active {
   background: linear-gradient(180deg, #36c2ee, var(--bt-cyan));
   box-shadow: 0 3px 0 #087faa;
   color: #fff;
@@ -1465,6 +1479,17 @@ button:disabled {
   background: linear-gradient(180deg, #45c5ed, var(--bt-cyan));
   box-shadow: 0 4px 0 var(--bt-cyan-deep);
   color: #fff;
+}
+
+.topbar-icon-button--danger {
+  background: #fff0f3;
+  box-shadow: 0 4px 0 #d49aa8;
+  color: #c23a59;
+}
+
+.topbar-icon-button--danger:hover {
+  background: #ffdce4;
+  color: #a91f40;
 }
 
 @keyframes clock-colon {

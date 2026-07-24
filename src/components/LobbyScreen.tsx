@@ -152,6 +152,50 @@ export function LobbyScreen() {
             </fieldset>
           </div>
 
+          <div className="setup-settings setup-settings--secondary">
+            <fieldset className="setup-fieldset">
+              <legend>
+                <GameIcon name="banknote" size={16} />
+                Vốn khởi điểm / đội
+              </legend>
+              <div className="setup-choice-control" role="group" aria-label="Vốn khởi điểm mỗi đội">
+                {GAME_CONFIG.STARTING_CASH_OPTIONS.map((amount) => (
+                  <button
+                    aria-pressed={settings.startingCash === amount}
+                    className={settings.startingCash === amount ? 'is-active' : ''}
+                    key={amount}
+                    onClick={() => updateSettings({ startingCash: amount })}
+                    type="button"
+                  >
+                    {amount.toLocaleString('vi-VN')}
+                    <small>triệu</small>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset className="setup-fieldset">
+              <legend>
+                <GameIcon name="help" size={16} />
+                Thời gian mỗi câu hỏi
+              </legend>
+              <div className="setup-choice-control" role="group" aria-label="Thời gian mỗi câu hỏi">
+                {GAME_CONFIG.TRIVIA_SECOND_OPTIONS.map((seconds) => (
+                  <button
+                    aria-pressed={settings.triviaSeconds === seconds}
+                    className={settings.triviaSeconds === seconds ? 'is-active' : ''}
+                    key={seconds}
+                    onClick={() => updateSettings({ triviaSeconds: seconds })}
+                    type="button"
+                  >
+                    {seconds}
+                    <small>giây</small>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          </div>
+
           <div className="team-section-heading">
             <div>
               <span className="section-kicker">ĐỘI HÌNH</span>

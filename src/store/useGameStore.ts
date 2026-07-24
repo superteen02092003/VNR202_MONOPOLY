@@ -30,6 +30,7 @@ import {
   resolveTrivia,
   rollDice as rollDiceCore,
   settleDebt,
+  serveJailTurn,
   startFestival,
   startMatch,
   takeoverProperty,
@@ -436,7 +437,7 @@ export const useGameStore = create<GameStore>()(
 
         // Thâu tóm thay cho việc nộp tiền lưu trú: nhóm mua đứt thay vì trả phí.
         if (!takeoverProperty(state, player.id, pending.tileId)) {
-          result = no('Thương vụ thâu tóm bất thành.')
+          result = no('Bảo Hộ Di Sản đã chặn thương vụ; lá chắn hiện đã được sử dụng.')
           state.pendingAction = { kind: 'idle' }
           return
         }
@@ -554,6 +555,7 @@ export const useGameStore = create<GameStore>()(
           case 'jailed': {
             if (player) {
               pushLog(state, 'info', `${player.name} chấp nhận nghỉ lượt tại ô Kẹt xe.`, player.id)
+              serveJailTurn(state)
             }
             break
           }
@@ -581,12 +583,16 @@ export const useGameStore = create<GameStore>()(
     endTurn: () => {
       let result: ActionResult = ok
       set((state) => {
-        if (state.phase === 'lobby' || state.phase === 'game-over') {
-          result = no('Ván đấu chưa bắt đầu hoặc đã kết thúc.')
+        if (state.phase !== 'action') {
+          result = no('Chỉ có thể chốt lượt sau khi hoàn tất Vòng Hành động.')
           return
         }
         if (state.pendingAction.kind === 'rent' || state.pendingAction.kind === 'tax') {
           result = no('Nhóm phải hoàn tất khoản thanh toán bắt buộc trước khi chốt lượt.')
+          return
+        }
+        if (state.pendingAction.kind !== 'idle') {
+          result = no('Hãy xử lý hoặc bỏ qua hành động hiện tại trước khi chốt lượt.')
           return
         }
 

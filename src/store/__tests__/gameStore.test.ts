@@ -83,6 +83,16 @@ describe('Khởi tạo ván', () => {
     expect(state.players.every((p) => p.position === GAME_CONFIG.TILE_START)).toBe(true)
   })
 
+  it('áp dụng vốn khởi điểm và thời gian hỏi đáp do Host chọn', () => {
+    store().resetGame(20250203)
+    store().updateSettings({ startingCash: 2000, triviaSeconds: 45 })
+    store().startGame(SETUPS, { randomizeTurnOrder: false })
+    store().beginGame()
+
+    expect(store().players.every((player) => player.cash === 2000)).toBe(true)
+    expect(store().settings.triviaSeconds).toBe(45)
+  })
+
   it('từ chối ván có hai nhóm chọn trùng nhân vật', () => {
     store().resetGame(1)
     const result = store().startGame([
@@ -156,6 +166,16 @@ describe('Luồng một lượt chơi', () => {
     const result = store().rollDice()
     expect(result.ok).toBe(false)
     expect(store().phase).toBe('trivia')
+  })
+
+  it('không cho chốt lượt trước khi hoàn tất Vòng Hành động', () => {
+    expect(store().endTurn().ok).toBe(false)
+
+    store().answerTrivia(null)
+    expect(store().endTurn().ok).toBe(false)
+
+    store().rollDice()
+    expect(store().endTurn().ok).toBe(false)
   })
 
   it('trả lời sai thì không được rút thẻ', () => {
@@ -264,6 +284,25 @@ describe('Vòng Hành động — đất đối thủ', () => {
     expect(store().properties[HANOI].level).toBe(2)
   })
 
+  it('cho phép thử thâu tóm để tiêu một lần Bảo Hộ Di Sản', () => {
+    giveHanoiToP2(2, 240)
+    useGameStore.setState((state) => {
+      state.properties[HANOI].shielded = true
+    })
+    store().answerTrivia(null)
+    landOn(HANOI)
+
+    const pending = store().pendingAction
+    expect(pending.kind).toBe('rent')
+    if (pending.kind !== 'rent') return
+    expect(pending.takeoverCost).toBe(480)
+
+    expect(store().confirmTakeover().ok).toBe(false)
+    expect(store().properties[HANOI].ownerId).toBe('p2')
+    expect(store().properties[HANOI].shielded).toBe(false)
+    expect(store().pendingAction.kind).toBe('idle')
+  })
+
   it('chặn thâu tóm Biểu tượng Địa phương', () => {
     giveHanoiToP2(4, 840)
     store().answerTrivia(null)
@@ -290,6 +329,7 @@ describe('Các ô đặc biệt', () => {
 
     store().declineAction()
     store().endTurn()
+    expect(store().players[0].jailTurnsLeft).toBe(GAME_CONFIG.JAIL_TURNS)
     playUntilP1()
 
     // Tới lượt p1: bị đưa thẳng vào trạng thái chờ ở ô Kẹt xe.

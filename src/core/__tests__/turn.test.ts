@@ -5,7 +5,7 @@ import { getCurrentPlayer, getPlayer } from '../logic/players'
 import { movePlayer, sendToJail, teleportPlayer } from '../logic/movement'
 import { declareBankruptcy } from '../logic/payments'
 import { computeStandings } from '../logic/scoring'
-import { advanceToNextPlayer, beginTurn, endTurn, tickTimer } from '../logic/turn'
+import { advanceToNextPlayer, beginTurn, endTurn, serveJailTurn, tickTimer } from '../logic/turn'
 import { createTestGame, forceOwn } from './helpers'
 
 describe('Di chuyển', () => {
@@ -73,10 +73,14 @@ describe('Ô Kẹt xe – Cách ly', () => {
     expect(player.position).toBe(GAME_CONFIG.TILE_JAIL)
     expect(player.jailTurnsLeft).toBe(GAME_CONFIG.JAIL_TURNS)
 
+    // Kết thúc lượt vừa rơi vào Kẹt xe không được tính là một lượt nghỉ.
+    endTurn(state)
+    expect(player.jailTurnsLeft).toBe(GAME_CONFIG.JAIL_TURNS)
+
     // Ba lần tới lượt p1 là ba lượt nghỉ.
     for (let i = 0; i < GAME_CONFIG.JAIL_TURNS; i++) {
       state.currentPlayerIndex = 0
-      endTurn(state)
+      expect(serveJailTurn(state)).toBe(true)
     }
 
     expect(getPlayer(state, 'p1').status).toBe('active')
@@ -137,6 +141,15 @@ describe('Đồng hồ tổng & kết thúc ván', () => {
     expect(tickTimer(state, 5_000)).toBe(true)
     expect(state.isFinalTurn).toBe(true)
     expect(state.phase).not.toBe('game-over')
+  })
+
+  it('trừ đúng thời gian thực tế khi trình duyệt bị treo hoặc chạy nền', () => {
+    const state = createTestGame({ matchMinutes: 1 })
+    state.timeRemainingMs = 10_000
+
+    expect(tickTimer(state, 30_000)).toBe(true)
+    expect(state.timeRemainingMs).toBe(0)
+    expect(state.isFinalTurn).toBe(true)
   })
 
   it('đóng băng bàn cờ sau khi nhóm hiện tại đi nốt lượt cuối', () => {

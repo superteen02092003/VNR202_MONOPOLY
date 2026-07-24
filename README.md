@@ -42,7 +42,7 @@ src/
 │   │   ├── board.ts         ← 32 ô cờ + 8 vùng miền Việt Nam
 │   │   ├── characters.ts    ← 10 nhân vật 3D
 │   │   ├── cards.ts         ← 9 loại Thẻ Cơ hội
-│   │   └── questions.ts     ← Ngân hàng câu hỏi VNR202 (62 câu, 3 chương)
+│   │   └── questions.ts     ← Ngân hàng câu hỏi VNR202 (62 câu, Chương 3)
 │   ├── logic/               ← Luật chơi, mỗi file một mối quan tâm
 │   │   ├── board.ts         ← Truy vấn ô cờ, độc quyền vùng miền
 │   │   ├── movement.ts      ← Xúc xắc, di chuyển, thưởng Xuất phát, ô Kẹt xe
@@ -120,11 +120,12 @@ Nhóm phá sản luôn xếp cuối bảng.
 
 ## Ngân hàng câu hỏi
 
-62 câu trắc nghiệm, mỗi câu 4 phương án kèm phần giải thích cho Host đọc lại cho lớp:
+62 câu trắc nghiệm thuộc **Chương 3 — Quá độ lên CNXH và công cuộc Đổi mới
+(1975 đến nay)**, mỗi câu có 4 phương án và phần giải thích cho Host đọc lại:
 
-- **Chương 1** — Đảng ra đời và lãnh đạo giành chính quyền (1930-1945)
-- **Chương 2** — Lãnh đạo hai cuộc kháng chiến (1945-1975)
-- **Chương 3** — Quá độ lên CNXH và công cuộc Đổi mới (1975 đến nay)
+- **Mục I** — Xây dựng CNXH và bảo vệ Tổ quốc (1975-1986): 16 câu
+- **Mục II** — Lãnh đạo công cuộc đổi mới (1986 đến nay): 28 câu
+- **Mục III** — Thành tựu, hạn chế và kinh nghiệm đổi mới: 18 câu
 
 Thêm câu mới: chèn phần tử vào mảng trong
 [`src/core/data/questions.ts`](src/core/data/questions.ts). Test tự động sẽ kiểm tra

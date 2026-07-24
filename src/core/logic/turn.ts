@@ -36,8 +36,8 @@ export function beginTurn(state: GameCore): void {
 /* ------------------------------------------------------------------ */
 
 /**
- * Kết thúc lượt hiện tại: trừ thời hạn Festival, đếm lượt nghỉ ở ô Kẹt xe,
- * rồi kiểm tra điều kiện kết thúc ván trước khi chuyển nhóm.
+ * Kết thúc lượt hiện tại: trừ thời hạn Festival rồi kiểm tra điều kiện
+ * kết thúc ván trước khi chuyển nhóm.
  *
  * @returns true nếu ván đấu kết thúc tại đây.
  */
@@ -47,7 +47,6 @@ export function endTurn(state: GameCore): boolean {
   const player = getCurrentPlayer(state)
   if (player) {
     resetTurnEffects(player)
-    serveJailTurn(state)
   }
 
   tickFestivals(state)
@@ -69,10 +68,14 @@ export function endTurn(state: GameCore): boolean {
   return false
 }
 
-/** Trừ một lượt nghỉ cho nhóm đang kẹt ở ô Kẹt xe – Cách ly. */
-function serveJailTurn(state: GameCore): void {
+/**
+ * Ghi nhận một lượt thực sự phải nghỉ ở ô Kẹt xe – Cách ly.
+ * Hàm này chỉ được gọi khi nhóm chọn "Chấp nhận nghỉ lượt", không gọi trong
+ * endTurn vì lượt vừa rơi vào Kẹt xe chưa phải là một lượt nghỉ.
+ */
+export function serveJailTurn(state: GameCore): boolean {
   const player = getCurrentPlayer(state)
-  if (!player || player.status !== 'jailed') return
+  if (!player || player.status !== 'jailed') return false
 
   player.jailTurnsLeft -= 1
   if (player.jailTurnsLeft <= 0) {
@@ -87,6 +90,7 @@ function serveJailTurn(state: GameCore): void {
       player.id,
     )
   }
+  return true
 }
 
 /** Chuyển sang nhóm kế tiếp, bỏ qua các nhóm đã phá sản. */
