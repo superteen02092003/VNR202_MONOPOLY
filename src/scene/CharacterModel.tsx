@@ -9,6 +9,7 @@ import { resolveClipName } from './clips'
 interface CharacterModelProps {
   character: Character
   animation: CharacterAnimation
+  frontmost?: boolean
 }
 
 /** Chiều cao mục tiêu (đơn vị bàn cờ) để mọi quân cờ 3D cao xấp xỉ bằng nhau. */
@@ -20,7 +21,7 @@ const TARGET_HEIGHT = 0.95
  * Tên clip trong file mỗi nơi một kiểu nên được dò bằng `resolveClipName`;
  * muốn chỉ định tay thì khai báo `clips` trong src/core/data/characters.ts.
  */
-export function CharacterModel({ character, animation }: CharacterModelProps) {
+export function CharacterModel({ character, animation, frontmost = false }: CharacterModelProps) {
   const groupRef = useRef<Group>(null)
   const { scene, animations } = useGLTF(character.modelUrl)
 
@@ -59,14 +60,16 @@ export function CharacterModel({ character, animation }: CharacterModelProps) {
   // transform.scale giờ chỉ là hệ số tinh chỉnh (mặc định 1) trên nền scale tự động.
   const scale = autoScale * (character.transform?.scale ?? 1)
   const rotationY = character.transform?.rotationY ?? 0
-  const yOffset = character.transform?.yOffset ?? 0
+  const yOffset = (character.transform?.yOffset ?? 0) + (frontmost ? 0.08 : 0)
+  const renderOrder = frontmost ? 20 : 0
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} renderOrder={renderOrder}>
       <primitive
         object={model}
         position={[0, yOffset + groundOffset * scale, 0]}
         rotation={[0, rotationY, 0]}
+        renderOrder={renderOrder}
         scale={scale}
       />
     </group>

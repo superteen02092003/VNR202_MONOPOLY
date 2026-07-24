@@ -31,6 +31,12 @@ const SPECIAL_SIZE = 512
 
 const LABEL_FONT = '"Arial Rounded MT Bold", "Segoe UI", system-ui, sans-serif'
 
+// Hai dãy phía trên bàn cờ cần giữ giá ở phần dưới của thẻ khi nhìn vào layout tổng thể.
+const PRICE_BELOW_TILE_IDS = new Set([
+  9, 10, 11, 12, 13, 14, 15,
+  17, 18, 19, 20, 21, 22, 23,
+])
+
 /**
  * Nhãn ô cờ được vẽ vào CanvasTexture rồi đặt trực tiếp lên mặt bàn.
  *
@@ -104,7 +110,16 @@ function createTileTexture(tile: Tile, accentColor: string, isCorner: boolean) {
     // từ đáy canvas lên để GIÁ (dải màu) vẫn nằm ở mép trong (phía sân) mọi cạnh.
     const side = Math.floor(tile.id / 8)
     const flip = side === 1 || side === 2
-    drawPropertyLabel(context, w, h, tile.province, formatTilePrice(tile.price), accentColor, flip)
+    drawPropertyLabel(
+      context,
+      w,
+      h,
+      tile.province,
+      formatTilePrice(tile.price),
+      accentColor,
+      flip,
+      PRICE_BELOW_TILE_IDS.has(tile.id),
+    )
   } else {
     drawSpecialLabel(context, w, tile.type, tile.name, accentColor, isCorner)
   }
@@ -156,14 +171,14 @@ function drawCard(
 }
 
 /**
- * Nhãn ô đất trên canvas ĐỨNG: dải màu vùng miền mang tên tỉnh ở mép TRONG,
- * số giá thật lớn lấp phần còn lại. `flip` = true thì đảo đầu (cho cạnh trên).
+ * Nhãn ô đất trên canvas ĐỨNG: vùng trống cho công trình ở phía trong,
+ * tên địa danh ở giữa và giá lớn ở mép ngoài. `flip` = true thì đảo đầu (cho cạnh trên).
  */
 /**
- * Bố cục thẻ ô đất (tính từ MÉP TRONG — phía sân — ra ngoài):
- *  1. Dải màu vùng miền mang GIÁ (nhỏ) ở mép trong.
- *  2. TÊN địa danh (to, đậm) ngay phía trên giá.
- *  3. Nửa ngoài để trống = ĐẤT xây công trình (nhà đặt lên đây, không đè chữ).
+ * Bố cục thẻ ô đất (tính từ phía trong bàn cờ ra mép ngoài):
+ *  1. Phần phía trong để trống cho công trình 3D.
+ *  2. TÊN địa danh (to, đậm) ở giữa.
+ *  3. Dải màu vùng miền mang GIÁ ở mép ngoài.
  * `flip` = true thì vẽ ngược từ đáy canvas lên (cho cạnh trái & cạnh trên đã xoay).
  */
 function drawPropertyLabel(
@@ -174,6 +189,7 @@ function drawPropertyLabel(
   price: string,
   accentColor: string,
   flip: boolean,
+  priceBelow: boolean,
 ) {
   const radius = 36
   const cardWidth = width - CARD_INSET * 2
@@ -188,9 +204,13 @@ function drawPropertyLabel(
   const nameLines = splitLabel(context, province.toLocaleUpperCase('vi-VN'), cardWidth - 36, 60)
   const twoLines = nameLines.length > 1
 
-  // (1) Dải màu vùng miền ở mép trong, mang GIÁ tiền (nhỏ, trắng).
-  const stripDepth = 108
-  const stripTop = Math.min(yAt(0), yAt(stripDepth))
+  // (1) Dải màu vùng miền ở mép ngoài, mang GIÁ tiền.
+  const stripDepth = 126
+  const canvasPriceStart = priceBelow || !flip ? cardHeight - stripDepth : 0
+  const stripStart = flip
+    ? cardHeight - canvasPriceStart - stripDepth
+    : canvasPriceStart
+  const stripTop = Math.min(yAt(stripStart), yAt(stripStart + stripDepth))
   context.save()
   roundedRect(context, CARD_INSET, CARD_INSET, cardWidth, cardHeight, radius)
   context.clip()
@@ -199,14 +219,14 @@ function drawPropertyLabel(
   context.restore()
 
   context.fillStyle = '#ffffff'
-  context.font = `900 76px ${LABEL_FONT}`
-  fitText(context, price, width / 2, yAt(stripDepth / 2), cardWidth - 44, 76)
+  context.font = `900 96px ${LABEL_FONT}`
+  fitText(context, price, width / 2, yAt(stripStart + stripDepth / 2), cardWidth - 32, 96)
 
-  // (2) TÊN địa danh — to, đậm, ngay trên dải giá.
+  // (2) TÊN địa danh — to, đậm, nằm giữa vùng trống và dải giá.
   context.fillStyle = '#1f2b45'
   const nameFont = twoLines ? 84 : 106
   const lineGap = nameFont + 12
-  const nameCenter = stripDepth + (twoLines ? 208 : 186)
+  const nameCenter = 366
   nameLines.forEach((line, index) => {
     const d = nameCenter + (index - (nameLines.length - 1) / 2) * lineGap
     context.font = `900 ${nameFont}px ${LABEL_FONT}`

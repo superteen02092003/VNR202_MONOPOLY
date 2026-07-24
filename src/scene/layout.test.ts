@@ -104,7 +104,7 @@ describe('Hướng ra ngoài của ô', () => {
     }
   })
 
-  it('công trình luôn được đẩy ra mép ngoài, không lấn vào giữa ô', () => {
+  it('công trình nằm về phía trong, trên vùng đất trống của ô', () => {
     for (const id of ALL_TILES) {
       const tile = getTileTransform(id)
       if (tile.isCorner) continue
@@ -112,7 +112,7 @@ describe('Hướng ra ngoài của ô', () => {
       const building = getBuildingSlot(id)
       const tileDistance = Math.hypot(tile.position[0], tile.position[2])
       const buildingDistance = Math.hypot(building.position[0], building.position[2])
-      expect(buildingDistance).toBeGreaterThan(tileDistance)
+      expect(buildingDistance).toBeLessThan(tileDistance)
     }
   })
 

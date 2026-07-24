@@ -152,7 +152,7 @@ export function getPawnSlot(
   return [x + Math.cos(angle) * PAWN_SPREAD, y, z + Math.sin(angle) * PAWN_SPREAD]
 }
 
-/** Công trình đặt lệch ra mép ngoài của ô để chừa chỗ giữa cho quân cờ. */
+/** Công trình đặt lệch vào phía trong của ô để nằm trên vùng đất trống, không đè tên/giá. */
 export function getBuildingSlot(tileId: number): {
   position: [number, number, number]
   rotationY: number
@@ -166,7 +166,7 @@ export function getBuildingSlot(tileId: number): {
   const distance = TILE_DEPTH * 0.26
 
   return {
-    position: [position[0] + outX * distance, TILE_HEIGHT, position[2] + outZ * distance],
+    position: [position[0] - outX * distance, TILE_HEIGHT, position[2] - outZ * distance],
     rotationY,
   }
 }
