@@ -1,4 +1,4 @@
-import { Html, RoundedBox } from '@react-three/drei'
+import { RoundedBox } from '@react-three/drei'
 import { Shape } from 'three'
 
 import { BOARD, BOARD_3D } from '../core'
@@ -147,7 +147,6 @@ function BoardBase() {
         />
       </mesh>
 
-      <CenterBrand />
     </group>
   )
 }
@@ -203,67 +202,6 @@ function BoardRails({ half, innerHalf }: { half: number; innerHalf: number }) {
         </mesh>
       ))}
     </>
-  )
-}
-
-function CenterBrand() {
-  return (
-    <Html
-      position={[0, BOARD_3D.TILE_HEIGHT + 0.06, -1.78]}
-      center
-      pointerEvents="none"
-      zIndexRange={[4, 0]}
-    >
-      <div
-        style={{
-          minWidth: 205,
-          border: '3px solid rgba(255,255,255,0.96)',
-          borderRadius: 14,
-          background: 'linear-gradient(180deg, #ffffff 0%, #f7f1e7 100%)',
-          boxShadow: '0 8px 0 rgba(111,108,126,0.28), 0 12px 24px rgba(81,103,132,0.22)',
-          color: '#273451',
-          padding: '7px 16px 8px',
-          textAlign: 'center',
-          fontFamily: '"Arial Rounded MT Bold", "Segoe UI", sans-serif',
-          lineHeight: 1,
-          userSelect: 'none',
-        }}
-      >
-        <div
-          style={{
-            color: '#e60066',
-            fontSize: 8,
-            fontWeight: 900,
-            letterSpacing: '0.2em',
-            marginBottom: 3,
-          }}
-        >
-          VNR202
-        </div>
-        <div
-          style={{
-            color: '#138fc5',
-            fontSize: 17,
-            fontWeight: 1000,
-            letterSpacing: '-0.045em',
-            textShadow: '0 2px 0 rgba(20,143,197,0.13)',
-          }}
-        >
-          BUSINESS VOYAGE
-        </div>
-        <div
-          style={{
-            color: '#a47700',
-            fontSize: 8,
-            fontWeight: 900,
-            letterSpacing: '0.16em',
-            marginTop: 4,
-          }}
-        >
-          VIETNAM EDITION
-        </div>
-      </div>
-    </Html>
   )
 }
 

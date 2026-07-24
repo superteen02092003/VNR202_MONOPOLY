@@ -23,6 +23,12 @@ export const BOARD_HALF = BOARD_EDGE / 2
 /** Khe nhỏ giúp chân quân cờ và vòng sáng không xuyên vào mặt ô khi bob/nhảy. */
 export const PAWN_SURFACE_CLEARANCE = 0.015
 
+// Hai dãy ô cần đặt công trình ở vùng phía trên tên địa danh để không chồng lên giá.
+const BUILDING_ABOVE_NAME_TILE_IDS = new Set([
+  9, 10, 11, 12, 13, 14, 15,
+  17, 18, 19, 20, 21, 22, 23,
+])
+
 /** Khoảng hở tối thiểu để bevel của RoundedBox không chạm hoặc vượt quá nửa độ dày. */
 const ROUNDED_SLAB_RADIUS_CLEARANCE = 0.001
 
@@ -163,10 +169,12 @@ export function getBuildingSlot(tileId: number): {
   }
 
   const [outX, outZ] = getOutwardVector(rotationY)
-  const distance = TILE_DEPTH * 0.26
+  const buildingAboveName = BUILDING_ABOVE_NAME_TILE_IDS.has(tileId)
+  const distance = TILE_DEPTH * (buildingAboveName ? 0.34 : 0.26)
+  const direction = buildingAboveName ? 1 : -1
 
   return {
-    position: [position[0] - outX * distance, TILE_HEIGHT, position[2] - outZ * distance],
+    position: [position[0] + outX * distance * direction, TILE_HEIGHT, position[2] + outZ * distance * direction],
     rotationY,
   }
 }
