@@ -2749,6 +2749,91 @@ button:disabled {
   font-size: 1.35rem;
 }
 
+.board-dice-stage {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 166px;
+  padding: 10px 14px 9px;
+  border: 2px solid rgba(255, 255, 255, 0.96);
+  border-radius: 18px;
+  background: rgba(255, 253, 247, 0.9);
+  box-shadow: 0 8px 0 rgba(86, 103, 113, 0.2), 0 12px 24px rgba(58, 83, 89, 0.2);
+  color: var(--bt-ink);
+  font-family: "Arial Rounded MT Bold", "Segoe UI", sans-serif;
+  user-select: none;
+}
+
+.board-dice-stage__pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.board-dice-stage__plus {
+  color: #84909a;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.board-die-2d {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: 3px solid #ffffff;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #ffffff 0%, #edf1f2 100%);
+  box-shadow: 0 5px 0 #aeb8bc, 0 8px 14px rgba(65, 83, 87, 0.2);
+  transform: rotate(-4deg);
+  will-change: transform;
+}
+
+.board-die-2d:nth-child(3) {
+  transform: rotate(5deg);
+}
+
+.board-die-2d.is-rolling {
+  animation: board-die-roll 1080ms var(--die-delay) cubic-bezier(0.18, 0.76, 0.2, 1) both;
+}
+
+.board-die-2d__pip {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #17253b;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  transform: translate(-50%, -50%);
+}
+
+.board-die-2d__unknown {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #71808b;
+  font-family: Impact, sans-serif;
+  font-size: 1.7rem;
+}
+
+.board-dice-stage__result {
+  color: #65727d;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@keyframes board-die-roll {
+  0% { transform: translate3d(0, 0, 0) rotate(var(--die-rest-rotation)) scale(0.96); }
+  12% { transform: translate3d(-3px, -5px, 0) rotate(40deg) scale(1.04); }
+  28% { transform: translate3d(4px, -11px, 0) rotate(145deg) scale(1.08); }
+  47% { transform: translate3d(-4px, 3px, 0) rotate(255deg) scale(0.96); }
+  65% { transform: translate3d(4px, -7px, 0) rotate(360deg) scale(1.03); }
+  82% { transform: translate3d(-2px, 1px, 0) rotate(440deg) scale(0.98); }
+  100% { transform: translate3d(0, 0, 0) rotate(var(--die-rest-rotation)) scale(1); }
+}
+
 .movement-dock__status {
   display: flex;
   align-items: center;

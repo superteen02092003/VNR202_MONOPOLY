@@ -227,7 +227,8 @@ function drawPropertyLabel(
   const nameFont = twoLines ? 84 : 106
   const lineGap = nameFont + 12
   const nameCenter = 366
-  nameLines.forEach((line, index) => {
+  const orderedNameLines = flip ? [...nameLines].reverse() : nameLines
+  orderedNameLines.forEach((line, index) => {
     const d = nameCenter + (index - (nameLines.length - 1) / 2) * lineGap
     context.font = `900 ${nameFont}px ${LABEL_FONT}`
     fitText(context, line, width / 2, yAt(d), cardWidth - 30, nameFont)

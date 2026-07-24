@@ -112,7 +112,12 @@ describe('Hướng ra ngoài của ô', () => {
       const building = getBuildingSlot(id)
       const tileDistance = Math.hypot(tile.position[0], tile.position[2])
       const buildingDistance = Math.hypot(building.position[0], building.position[2])
-      expect(buildingDistance).toBeLessThan(tileDistance)
+      const buildingAboveName = [
+        9, 10, 11, 12, 13, 14, 15,
+        17, 18, 19, 20, 21, 22, 23,
+      ].includes(id)
+      if (buildingAboveName) expect(buildingDistance).toBeGreaterThan(tileDistance)
+      else expect(buildingDistance).toBeLessThan(tileDistance)
     }
   })
 
