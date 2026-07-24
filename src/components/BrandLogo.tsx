@@ -18,7 +18,6 @@ export function BrandLogo({ compact = false }: BrandLogoProps) {
       <div className="brand-logo__copy">
         <span className="brand-logo__eyebrow">VNR202</span>
         <strong className="brand-logo__title">BUSINESS VOYAGE</strong>
-        <span className="brand-logo__edition">Vietnam Edition</span>
       </div>
     </div>
   )

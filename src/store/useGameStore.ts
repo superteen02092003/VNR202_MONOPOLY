@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 
 import { GAME_CONFIG } from '../core/config'
@@ -100,7 +101,34 @@ export interface GameActions {
 
 export type GameStore = GameCore & GameActions
 
-export const useGameStore = create<GameStore>()(
+/* ------------------------------------------------------------------ */
+/* Lưu tiến trình ván đấu (chống mất dữ liệu khi người dùng bấm F5)    */
+/* ------------------------------------------------------------------ */
+
+/** Khóa localStorage; đổi hậu tố khi cấu trúc state thay đổi để bỏ bản cũ. */
+const STORAGE_KEY = 'vnr202-monopoly:v1'
+
+/**
+ * Bộ nhớ tạm dùng khi không có `window.localStorage`
+ * (chạy test Node, SSR...). Nhờ nó `persist` không bao giờ ném lỗi.
+ */
+const memoryStore = new Map<string, string>()
+const memoryStorage: StateStorage = {
+  getItem: (name) => memoryStore.get(name) ?? null,
+  setItem: (name, value) => {
+    memoryStore.set(name, value)
+  },
+  removeItem: (name) => {
+    memoryStore.delete(name)
+  },
+}
+
+const gameStorage = createJSONStorage<GameCore>(() => {
+  if (typeof window !== 'undefined' && window.localStorage) return window.localStorage
+  return memoryStorage
+})
+
+export const useGameStore = create<GameStore>()(persist(
   immer((set) => ({
     ...createInitialState(),
 
@@ -629,7 +657,17 @@ export const useGameStore = create<GameStore>()(
         endMatch(state, reason)
       }),
   })),
-)
+  {
+    name: STORAGE_KEY,
+    version: 1,
+    storage: gameStorage,
+    // Chỉ lưu dữ liệu ván đấu (GameCore); bỏ qua các action (hàm).
+    partialize: (state) =>
+      Object.fromEntries(
+        Object.entries(state).filter(([, value]) => typeof value !== 'function'),
+      ) as unknown as GameCore,
+  },
+))
 
 /* ------------------------------------------------------------------ */
 /* Điều hướng nội bộ                                                   */

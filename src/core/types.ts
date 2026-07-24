@@ -2,7 +2,7 @@
  * VNR202 BUSINESS VOYAGE - VIETNAM EDITION
  * Toàn bộ định nghĩa kiểu dữ liệu của lõi game (không phụ thuộc React / Zustand).
  *
- * Quy ước tiền tệ: mọi con số tiền trong game đều tính theo đơn vị "triệu VNĐ".
+ * Quy ước tiền tệ: mọi con số tiền trong game đều tính theo đơn vị "K".
  */
 
 /* ------------------------------------------------------------------ */

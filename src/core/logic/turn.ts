@@ -3,6 +3,7 @@ import { pushLog } from './log'
 import { getCurrentPlayer, getSolventPlayers, resetTurnEffects } from './players'
 import { computeStandings } from './scoring'
 import { drawQuestion } from './trivia'
+import { formatMoneyLong } from './money'
 import type { GameCore } from '../types'
 
 /* ------------------------------------------------------------------ */
@@ -148,7 +149,7 @@ export function endMatch(state: GameCore, reason: string): void {
     pushLog(
       state,
       'success',
-      `Quán quân: ${champion.name} với tổng tài sản ${champion.netWorth} triệu VNĐ.`,
+      `Quán quân: ${champion.name} với tổng tài sản ${formatMoneyLong(champion.netWorth)}.`,
       champion.playerId,
     )
   }

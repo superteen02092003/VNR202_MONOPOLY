@@ -240,15 +240,11 @@ describe('Nhãn cố định trên ô cờ', () => {
 })
 
 describe('Cảnh quan địa danh', () => {
-  it('hiển thị cụm kiến trúc mini khi địa danh chưa được xây', async () => {
+  it('không hiển thị công trình khi địa danh chưa có chủ', async () => {
     newMatch()
     const renderer = await ReactThreeTestRenderer.create(<PropertyScenery tileId={9} />)
-    const scenery = renderer.scene.find(
-      (node) => node.instance.userData.role === 'property-scenery',
-    )
 
-    expect(countMeshes(renderer.scene)).toBeGreaterThan(0)
-    expect(scenery.instance.userData.tileId).toBe(9)
+    expect(countMeshes(renderer.scene)).toBe(0)
 
     await renderer.unmount()
   })

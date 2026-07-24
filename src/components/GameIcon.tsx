@@ -24,6 +24,7 @@ export type GameIconName =
   | 'plane'
   | 'play'
   | 'plus'
+  | 'restart'
   | 'settings'
   | 'shield'
   | 'sparkles'
@@ -203,6 +204,13 @@ function IconPaths({ name }: { name: GameIconName }) {
       return <path {...common} d="m9 7 8 5-8 5Z" />
     case 'plus':
       return <path {...common} d="M12 5v14M5 12h14" />
+    case 'restart':
+      return (
+        <>
+          <path {...common} d="M20 12a8 8 0 1 1-2.34-5.66" />
+          <path {...common} d="M20 4v4.5h-4.5" />
+        </>
+      )
     case 'settings':
       return (
         <>

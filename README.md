@@ -76,7 +76,7 @@ Nhờ vậy toàn bộ luật chơi test được mà không cần dựng cảnh
 24 ô đất chia cho 8 vùng miền, mỗi vùng 3 địa danh, giá tăng dần từ Tây Bắc (60)
 đến Đông Nam Bộ (400). Xen kẽ 2 ô Cơ hội và 2 ô Thuế.
 
-Đơn vị tiền trong toàn bộ code là **triệu VNĐ** (vốn khởi điểm 1.500 = 1,5 tỷ).
+Đơn vị tiền trong toàn bộ code là **K**.
 
 ### Bốn cấp công trình
 
