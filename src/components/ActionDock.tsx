@@ -4,13 +4,17 @@ import type { CSSProperties, ReactNode } from 'react'
 import {
   BOARD,
   BUILD_LEVEL_LABEL,
+  GAME_CONFIG,
   formatMoney,
   formatPropertyPrice,
   getCardDefinition,
   getPropertyTile,
   getTile,
+  playSound,
 } from '../core'
 import type {
+  CardTarget,
+  CardTargetKind,
   CardEffect,
   CardDefinition,
   PlayerId,
@@ -289,6 +293,7 @@ export function ActionDock() {
   return (
     <div className={`action-dock-wrap${hasActionModal ? ' action-dock-wrap--modal' : ''}`}>
       {phase === 'pre-roll' && <PreRollDock current={current} />}
+      {(phase === 'rolling' || phase === 'moving') && <MovementDock />}
       {phase === 'action' && <ActionPrompt />}
     </div>
   )
@@ -324,10 +329,13 @@ function TriviaPanel({
   }, [isTimerRunning, question.id])
 
   useEffect(() => {
+    if (remaining <= 5 && remaining > 0 && isTimerRunning) {
+      playSound('tick-warning')
+    }
     if (remaining !== 0 || firedRef.current) return
     firedRef.current = true
     onAnswer(null)
-  }, [onAnswer, remaining])
+  }, [onAnswer, remaining, isTimerRunning])
 
   const progress = Math.max(0, Math.min(1, remaining / seconds))
 
@@ -386,7 +394,7 @@ function TriviaPanel({
               <button
                 className="trivia-option"
                 key={option}
-                onClick={() => onAnswer(index)}
+                onClick={() => { playSound('click'); onAnswer(index) }}
                 type="button"
               >
                 <span>{String.fromCharCode(65 + index)}</span>
@@ -506,7 +514,173 @@ function PreRollDock({ current }: { current: Player | undefined }) {
     )
   }
 
-  return null
+  return (
+    <section className="action-dock strategy-dock">
+      <div className="action-dock__accent" style={{ background: current.color }} />
+      <div className="strategy-dock__intro">
+        <span className="section-kicker">VÒNG 02 · CHIẾN THUẬT</span>
+        <h2>Chuẩn bị nước đi</h2>
+        <p>Dùng Thẻ Cơ hội trước khi tung xúc xắc, hoặc tiếp tục ngay.</p>
+      </div>
+      <CardInventory player={current} />
+    </section>
+  )
+}
+
+function CardInventory({ player }: { player: Player }) {
+  const playCard = useGameStore((state) => state.playCard)
+  const players = useGameStore((state) => state.players)
+  const properties = useGameStore((state) => state.properties)
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [targetValue, setTargetValue] = useState('')
+  const { runAction } = useNotice()
+
+  const card = player.cards.find((item) => item.instanceId === activeId)
+  const definition = card ? getCardDefinition(card.effect) : null
+  const targetOptions = useMemo(
+    () =>
+      definition
+        ? getTargetOptions(definition.effect, definition.targetKind, player, players, properties)
+        : [],
+    [definition, player, players, properties],
+  )
+
+  useEffect(() => {
+    setTargetValue(targetOptions[0]?.value ?? '')
+  }, [activeId, targetOptions])
+
+  const useCard = () => {
+    if (!card || !definition) return
+    const target = createCardTarget(definition.targetKind, targetValue)
+    const succeeded = runAction(
+      () => playCard(card.instanceId, target),
+      `Đã dùng thẻ "${definition.name}".`,
+    )
+    if (succeeded) {
+      playSound('card-use')
+      setActiveId(null)
+    }
+  }
+
+  return (
+    <div className="card-inventory">
+      <div className="card-inventory__header">
+        <span>
+          <GameIcon name="cards" size={16} />
+          Túi Thẻ Cơ hội
+        </span>
+        <small>{player.cards.length}/{GAME_CONFIG.MAX_CARDS}</small>
+      </div>
+
+      <div className="card-inventory__slots">
+        {Array.from({ length: GAME_CONFIG.MAX_CARDS }, (_, index) => {
+          const item = player.cards[index]
+          if (!item) {
+            return (
+              <div className="chance-card chance-card--empty" key={`empty-${index}`}>
+                <span><GameIcon name="plus" size={14} /></span>
+                <small>Trống</small>
+              </div>
+            )
+          }
+          const itemDefinition = getCardDefinition(item.effect)
+          const unavailable = item.effect === 'escape-jail' && player.status !== 'jailed'
+          return (
+            <button
+              aria-pressed={activeId === item.instanceId}
+              className={`chance-card ${activeId === item.instanceId ? 'is-active' : ''}`}
+              disabled={unavailable}
+              key={item.instanceId}
+              onClick={() => setActiveId((current) => current === item.instanceId ? null : item.instanceId)}
+              title={
+                unavailable
+                  ? 'Thẻ này chỉ dùng được khi đội đang ở ô Kẹt xe.'
+                  : itemDefinition.description
+              }
+              type="button"
+            >
+              <span><GameIcon name={CARD_ICON_BY_EFFECT[item.effect]} size={18} /></span>
+              <strong>{itemDefinition.name}</strong>
+            </button>
+          )
+        })}
+      </div>
+
+      {card && definition && (
+        <div className="card-use-panel">
+          <div>
+            <strong>{definition.name}</strong>
+            <p>{definition.description}</p>
+          </div>
+          {definition.targetKind !== 'none' && targetOptions.length > 0 && (
+            <label>
+              <span className="sr-only">Mục tiêu của thẻ</span>
+              <select
+                aria-label="Mục tiêu của thẻ"
+                onChange={(event) => setTargetValue(event.target.value)}
+                value={targetValue}
+              >
+                {targetOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {definition.targetKind !== 'none' && targetOptions.length === 0 && (
+            <span className="card-no-target">Chưa có mục tiêu hợp lệ</span>
+          )}
+          <button
+            disabled={definition.targetKind !== 'none' && !targetValue}
+            onClick={useCard}
+            type="button"
+          >
+            Dùng thẻ
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MovementDock() {
+  const phase = useGameStore((state) => state.phase)
+  const dice = useGameStore((state) => state.dice)
+  const applyMovement = useGameStore((state) => state.applyMovement)
+  const current = useGameStore(selectCurrentPlayer)
+
+  if (!dice || !current) return null
+
+  return (
+    <section className="action-dock movement-dock">
+      <div className="movement-dock__player" style={{ '--player-color': current.color } as CSSProperties}>
+        <CharacterMark characterId={current.characterId} />
+        <div>
+          <small>{phase === 'rolling' ? 'XÚC XẮC ĐANG LĂN' : 'ĐANG DI CHUYỂN'}</small>
+          <strong>{current.name}</strong>
+        </div>
+      </div>
+      <div className="dice-result">
+        <span>{dice[0]}</span>
+        <i>+</i>
+        <span>{dice[1]}</span>
+        <i>=</i>
+        <strong>{dice[0] + dice[1]}</strong>
+      </div>
+      <div className="movement-dock__status">
+        <div className="motion-bars"><i /><i /><i /></div>
+        <span>{phase === 'rolling' ? 'Chờ xúc xắc dừng…' : `Đang đi ${dice[0] + dice[1]} bước…`}</span>
+      </div>
+      <ActionButton
+        action={applyMovement}
+        className="skip-motion-button"
+        icon="chevron-right"
+        label="Bỏ qua hoạt ảnh"
+        variant="ghost"
+      />
+    </section>
+  )
 }
 
 function ActionPrompt() {
@@ -1080,6 +1254,11 @@ function ActionButton({
 function ResultOverlay() {
   const standings = useGameStore((state) => state.standings)
   const resetGame = useGameStore((state) => state.resetGame)
+
+  useEffect(() => {
+    playSound('fanfare')
+  }, [])
+
   if (!standings?.length) return null
 
   const winner = standings[0]
@@ -1153,3 +1332,69 @@ function StandingRow({ standing }: { standing: Standing }) {
   )
 }
 
+interface TargetOption {
+  label: string
+  value: string
+}
+
+function getTargetOptions(
+  effect: CardEffect,
+  kind: CardTargetKind,
+  player: Player,
+  players: Player[],
+  properties: ReturnType<typeof useGameStore.getState>['properties'],
+): TargetOption[] {
+  if (kind === 'dice') {
+    return Array.from({ length: 11 }, (_, index) => ({
+      label: `Tổng ${index + 2}`,
+      value: String(index + 2),
+    }))
+  }
+  if (kind === 'player') {
+    return players
+      .filter(
+        (item) =>
+          item.id !== player.id &&
+          item.status !== 'bankrupt' &&
+          (effect !== 'swap-position' || item.status !== 'jailed'),
+      )
+      .map((item) => ({ label: item.name, value: item.id }))
+  }
+  if (kind === 'own-tile' || kind === 'opponent-tile') {
+    return BOARD.flatMap((tile) => {
+      if (tile.type !== 'property') return []
+      const property = properties[tile.id]
+      const ownerId = property?.ownerId
+      const matches =
+        kind === 'own-tile' ? ownerId === player.id : Boolean(ownerId && ownerId !== player.id)
+      if (!matches) return []
+      if (
+        effect === 'demolish' &&
+        (!property || property.level < 2 || property.level >= GAME_CONFIG.MAX_BUILD_LEVEL)
+      ) {
+        return []
+      }
+      if (
+        effect === 'instant-festival' &&
+        (!property || property.festivalTurnsLeft === null || property.festivalTurnsLeft > 0)
+      ) {
+        return []
+      }
+      if (effect === 'heritage-shield' && property?.shielded) return []
+      return [{ label: `${tile.province} · ${tile.name}`, value: String(tile.id) }]
+    })
+  }
+  if (kind === 'any-tile') {
+    return BOARD.map((tile) => ({ label: `Ô ${tile.id} · ${tile.name}`, value: String(tile.id) }))
+  }
+  return []
+}
+
+function createCardTarget(kind: CardTargetKind, value: string): CardTarget {
+  if (kind === 'dice') return { kind: 'dice', total: Number(value) }
+  if (kind === 'player') return { kind: 'player', playerId: value }
+  if (kind === 'own-tile' || kind === 'opponent-tile' || kind === 'any-tile') {
+    return { kind: 'tile', tileId: Number(value) }
+  }
+  return { kind: 'none' }
+}

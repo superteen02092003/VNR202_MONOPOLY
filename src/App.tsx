@@ -6,6 +6,8 @@ import { GameHud } from './components/GameHud'
 import { GameStartOverlay } from './components/GameStartOverlay'
 import { LobbyScreen } from './components/LobbyScreen'
 import { NoticeProvider } from './components/NoticeCenter'
+import { playGameEventSound } from './core'
+import { useGameEvents } from './scene/useGameEvents'
 import { useGameStore } from './store/useGameStore'
 
 const GameCanvas = lazy(() =>
@@ -32,6 +34,11 @@ function GameScreen() {
   const phase = useGameStore((state) => state.phase)
   const turnCount = useGameStore((state) => state.turnCount)
   const awaitingStart = phase === 'turn-end' && turnCount === 0
+
+  // Phát âm thanh cho game event — chỉ 1 instance duy nhất cho toàn game
+  useGameEvents((event) => {
+    playGameEventSound(event)
+  })
 
   return (
     <main className="game-shell">

@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 
-import { formatMoney, getTile } from '../core'
+import { GAME_CONFIG, formatMoney, getTile, playSound, soundManager } from '../core'
 import type { Player } from '../core'
 import { selectIsEndgameWarning, useGameStore } from '../store/useGameStore'
 import { CharacterMark } from './CharacterMark'
@@ -52,6 +52,12 @@ function AccessibilityControls() {
   const resumeTimer = useGameStore((state) => state.resumeTimer)
   const resetGame = useGameStore((state) => state.resetGame)
   const awaitingStart = phase === 'turn-end' && turnCount === 0
+  const [isMuted, setIsMuted] = useState(() => soundManager.isMuted())
+
+  const toggleSound = () => {
+    const muted = soundManager.toggleMute()
+    setIsMuted(muted)
+  }
 
   const requestReset = () => {
     if (window.confirm('Chơi lại từ đầu? Toàn bộ tiến trình ván hiện tại sẽ bị xóa và quay về phòng chờ.')) {
@@ -62,10 +68,19 @@ function AccessibilityControls() {
   return (
     <div className="game-access-controls" aria-label="Điều khiển ván đấu">
       <button
+        aria-label={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+        className={`game-access-button ${isMuted ? 'is-active' : ''}`}
+        onClick={toggleSound}
+        title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
+        type="button"
+      >
+        <GameIcon name={isMuted ? 'mute' : 'volume'} size={17} />
+      </button>
+      <button
         aria-label={isTimerRunning ? 'Tạm dừng đồng hồ' : 'Tiếp tục đồng hồ'}
         className={`game-access-button ${!isTimerRunning ? 'is-paused' : ''}`}
         disabled={awaitingStart}
-        onClick={isTimerRunning ? pauseTimer : resumeTimer}
+        onClick={() => { playSound('click'); isTimerRunning ? pauseTimer() : resumeTimer() }}
         title={isTimerRunning ? 'Tạm dừng' : 'Tiếp tục'}
         type="button"
       >
@@ -74,7 +89,7 @@ function AccessibilityControls() {
       <button
         aria-label="Chơi lại từ đầu"
         className="game-access-button game-access-button--reset"
-        onClick={requestReset}
+        onClick={() => { playSound('click'); requestReset() }}
         title="Chơi lại từ đầu"
         type="button"
       >
@@ -194,8 +209,13 @@ function PlayerCard({
             <GameIcon name={player.status === 'jailed' ? 'lock' : 'map'} size={12} />
             {statusLabel}
           </span>
-          <span>{owned} BĐS</span>
+          <span>{owned} địa danh</span>
         </div>
+      </div>
+      <div className="player-card__inventory" title={`${player.cards.length}/${GAME_CONFIG.MAX_CARDS} Thẻ Cơ hội`}>
+        {Array.from({ length: GAME_CONFIG.MAX_CARDS }, (_, cardIndex) => (
+          <i className={cardIndex < player.cards.length ? 'is-filled' : ''} key={cardIndex} />
+        ))}
       </div>
     </article>
   )
