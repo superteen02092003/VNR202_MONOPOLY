@@ -215,6 +215,7 @@ describe('Nhãn cố định trên ô cờ', () => {
           accentColor="#5f8500"
           depth={BOARD_3D.CORNER_SIZE}
           isCorner
+          rent={null}
           tile={tile}
           width={BOARD_3D.CORNER_SIZE}
         />,

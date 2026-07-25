@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { CSSProperties, FormEvent } from 'react'
 
-import { CHARACTERS, GAME_CONFIG } from '../core'
+import { CHARACTERS, formatMoney, GAME_CONFIG } from '../core'
 import type { CharacterId } from '../core'
 import type { PlayerSetup } from '../core/logic/setup'
 import { useGameStore } from '../store/useGameStore'
@@ -53,6 +53,9 @@ export function LobbyScreen() {
       </header>
 
       <div className="lobby-layout">
+        <div className="lobby-layout__title" aria-label="Tên hành trình">
+          <h1>HÀNH TRÌNH KIẾN TẠO VIỆT NAM</h1>
+        </div>
         <form className="setup-card" onSubmit={submit}>
           <div className="setup-card__header">
             <div>
@@ -64,7 +67,13 @@ export function LobbyScreen() {
           <div className="setup-summary" aria-label="Cấu hình mặc định">
             <span><strong>{count}</strong><small>đội</small></span>
             <span><strong>{GAME_CONFIG.DEFAULT_MATCH_MINUTES}</strong><small>phút</small></span>
-            <span><strong>{GAME_CONFIG.STARTING_CASH.toLocaleString('vi-VN')}</strong><small>K / đội</small></span>
+            <span className="setup-summary__money">
+              <strong>
+                <img alt="" aria-hidden="true" src="/money-stack-green.png" />
+                {formatMoney(GAME_CONFIG.STARTING_CASH)}
+              </strong>
+              <small>vốn / đội</small>
+            </span>
             <span><strong>{GAME_CONFIG.DEFAULT_TRIVIA_SECONDS}</strong><small>giây / câu</small></span>
           </div>
 

@@ -48,7 +48,7 @@ export const BOARD: Tile[] = [
   {
     id: 8,
     type: 'jail',
-    name: 'Kẹt xe – Cách ly',
+    name: 'Kẹt xe',
     description: 'Nghỉ 3 lượt. Có thể trả phí giải tỏa hoặc dùng thẻ Vé Thông Hành để thoát sớm.',
   },
 
@@ -58,10 +58,9 @@ export const BOARD: Tile[] = [
   prop(11, 'dong-bang-song-hong', 'Ninh Bình', 'Tràng An – Cố đô Hoa Lư', 160, 16),
   {
     id: 12,
-    type: 'tax',
-    name: 'Thuế',
-    description: 'Thuế.',
-    amount: 100,
+    type: 'chance',
+    name: 'Ô Cơ hội',
+    description: 'Bốc ngay 1 Thẻ Cơ hội nếu túi đồ còn chỗ trống.',
   },
   prop(13, 'bac-trung-bo', 'Nghệ An', 'Khu di tích Kim Liên', 180, 16),
   prop(14, 'bac-trung-bo', 'Quảng Bình', 'Vườn quốc gia Phong Nha – Kẻ Bàng', 180, 16),
@@ -70,8 +69,8 @@ export const BOARD: Tile[] = [
   {
     id: 16,
     type: 'festival',
-    name: 'Đăng cai Festival',
-    description: 'Chọn 1 địa danh đang sở hữu để đăng cai Festival — tiền lưu trú nhân đôi.',
+    name: 'Đăng cai lễ hội',
+    description: 'Chọn 1 địa danh đang sở hữu để đăng cai lễ hội — tiền lưu trú nhân đôi.',
   },
 
   /* --- Cạnh 3: Duyên hải Nam Trung Bộ & Tây Nguyên --- */
@@ -91,7 +90,7 @@ export const BOARD: Tile[] = [
   {
     id: 24,
     type: 'travel',
-    name: 'Sân bay Quốc tế',
+    name: 'Sân bay',
     description: 'Lượt kế tiếp, nhóm được bay thẳng tới bất kỳ ô nào trên bản đồ.',
   },
 

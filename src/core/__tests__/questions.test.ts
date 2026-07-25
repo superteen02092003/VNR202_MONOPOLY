@@ -60,14 +60,16 @@ describe('Vòng Hỏi Đáp', () => {
     state.currentQuestion = QUESTIONS[0]
     const correct = resolveTrivia(state, QUESTIONS[0].answerIndex)
     expect(correct?.correct).toBe(true)
-    expect(getPlayer(state, 'p1').cards).toHaveLength(1)
+    expect(correct?.cardDrawn).toBe(true)
+    expect(correct?.cardSaved || correct?.cardUsedImmediately).toBe(true)
+    expect(getPlayer(state, 'p1').cards.every((card) => card.effect === 'escape-jail')).toBe(true)
     expect(getPlayer(state, 'p1').stats.correctAnswers).toBe(1)
 
     state.currentQuestion = QUESTIONS[1]
     const wrongIndex = (QUESTIONS[1].answerIndex + 1) % 4
     const wrong = resolveTrivia(state, wrongIndex)
     expect(wrong?.correct).toBe(false)
-    expect(getPlayer(state, 'p1').cards).toHaveLength(1)
+    expect(getPlayer(state, 'p1').cards.every((card) => card.effect === 'escape-jail')).toBe(true)
     expect(getPlayer(state, 'p1').stats.wrongAnswers).toBe(1)
   })
 
@@ -87,6 +89,6 @@ describe('Vòng Hỏi Đáp', () => {
       state.currentQuestion = QUESTIONS[i]
       resolveTrivia(state, QUESTIONS[i].answerIndex)
     }
-    expect(getPlayer(state, 'p1').cards).toHaveLength(3)
+    expect(getPlayer(state, 'p1').cards.every((card) => card.effect === 'escape-jail')).toBe(true)
   })
 })

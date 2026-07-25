@@ -33,7 +33,7 @@ export function resolveLanding(state: GameCore, playerId: PlayerId): PendingActi
         pushLog(
           state,
           'info',
-          `${player.name} dừng ở ô Đăng cai Festival nhưng chưa có địa danh nào phù hợp.`,
+          `${player.name} dừng ở ô Đăng cai lễ hội nhưng chưa có địa danh nào phù hợp.`,
           playerId,
         )
         return { kind: 'idle' }
@@ -46,7 +46,7 @@ export function resolveLanding(state: GameCore, playerId: PlayerId): PendingActi
       pushLog(
         state,
         'success',
-        `${player.name} tới Sân bay Quốc tế — lượt sau được bay thẳng tới ô bất kỳ.`,
+        `${player.name} tới Sân bay — lượt sau được bay thẳng tới ô bất kỳ.`,
         playerId,
       )
       return { kind: 'travel' }

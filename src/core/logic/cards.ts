@@ -1,7 +1,8 @@
 import { GAME_CONFIG } from '../config'
 import { CARD_DEFINITIONS, getCardDefinition } from '../data/cards'
+import { BOARD } from '../data/board'
 import { getPropertyState, getPropertyTile, getTile } from './board'
-import { startFestival } from './festival'
+import { getFestivalEligibleTiles, startFestival } from './festival'
 import { pushEvent, pushLog, nextId } from './log'
 import { clampDiceTotal, releaseFromJail, teleportPlayer } from './movement'
 import { credit } from './payments'
@@ -16,38 +17,110 @@ import type { CardEffect, CardInstance, CardTarget, GameCore, PlayerId } from '.
 
 export interface DrawResult {
   card: CardInstance | null
-  /** Túi đồ đã đầy nên không bốc được. */
+  /** Giữ lại để tương thích với UI/store cũ; hệ thống mới không giới hạn túi thẻ. */
   bagFull: boolean
+  saved: boolean
+  usedImmediately: boolean
+  movedPlayer: boolean
 }
 
-/** Bốc 1 Thẻ Cơ hội theo trọng số. Túi đồ tối đa GAME_CONFIG.MAX_CARDS lá. */
-export function drawCard(state: GameCore, playerId: PlayerId): DrawResult {
+export interface DrawOptions {
+  immediate?: boolean
+}
+
+/**
+ * Bốc 1 Thẻ Cơ hội theo trọng số.
+ * Mọi thẻ được kích hoạt ngay; chỉ Vé Thông Hành được lưu để dùng khi Kẹt xe.
+ */
+export function drawCard(
+  state: GameCore,
+  playerId: PlayerId,
+  options: DrawOptions = {},
+): DrawResult {
   const player = getPlayer(state, playerId)
-
-  if (player.cards.length >= GAME_CONFIG.MAX_CARDS) {
-    pushLog(
-      state,
-      'card',
-      `${player.name} trả lời đúng nhưng túi đồ đã đầy (${GAME_CONFIG.MAX_CARDS} thẻ) — không bốc thêm được.`,
-      playerId,
-    )
-    return { card: null, bagFull: true }
-  }
-
+  void options
   const definition = pickWeighted(state, CARD_DEFINITIONS, (c) => c.weight)
-  if (!definition) return { card: null, bagFull: false }
+
+  if (!definition) return { card: null, bagFull: false, saved: false, usedImmediately: false, movedPlayer: false }
+
+  const shouldSave = definition.effect === 'escape-jail'
 
   const card: CardInstance = { instanceId: nextId(state, 'card'), effect: definition.effect }
-  player.cards.push(card)
+  if (shouldSave) {
+    player.cards.push(card)
+    pushLog(state, 'card', `${player.name} rút được thẻ ${definition.name}.`, playerId)
+    pushEvent(state, 'card-drawn', playerId)
+    return { card, bagFull: false, saved: true, usedImmediately: false, movedPlayer: false }
+  }
 
-  pushLog(
+  const outcome = applyCardEffect(
     state,
-    'card',
-    `${player.name} rút được thẻ ${definition.name}.`,
     playerId,
+    card.effect,
+    getImmediateCardTarget(state, playerId, card.effect),
   )
+  if (outcome.ok) {
+    player.stats.cardsPlayed += 1
+    pushLog(state, 'card', `${player.name} rút được thẻ ${definition.name} và dùng ngay.`, playerId)
+  } else {
+    pushLog(
+      state,
+      'warning',
+      `${player.name} rút được thẻ ${definition.name} nhưng không có mục tiêu phù hợp, thẻ đã bị bỏ qua.`,
+      playerId,
+    )
+  }
   pushEvent(state, 'card-drawn', playerId)
-  return { card, bagFull: false }
+  return {
+    card,
+    bagFull: false,
+    saved: false,
+    usedImmediately: outcome.ok,
+    movedPlayer: outcome.movedPlayer,
+  }
+}
+
+function getImmediateCardTarget(state: GameCore, playerId: PlayerId, effect: CardEffect): CardTarget {
+  const player = getPlayer(state, playerId)
+
+  switch (effect) {
+    case 'choose-dice':
+      return { kind: 'dice', total: 7 }
+    case 'demolish': {
+      const tile = BOARD.find((candidate) => {
+        if (candidate.type !== 'property') return false
+        const property = getPropertyState(state, candidate.id)
+        return property.ownerId !== null && property.ownerId !== playerId && property.level >= 2 && property.level < 4
+      })
+      return tile ? { kind: 'tile', tileId: tile.id } : { kind: 'none' }
+    }
+    case 'teleport': {
+      const tile = BOARD.find((candidate) => {
+        if (candidate.type !== 'property' || candidate.id === player.position) return false
+        const property = getPropertyState(state, candidate.id)
+        return property.ownerId === null || property.ownerId === playerId
+      })
+      return { kind: 'tile', tileId: tile?.id ?? player.position }
+    }
+    case 'swap-position': {
+      const other = state.players.find(
+        (candidate) => candidate.id !== playerId && candidate.status !== 'bankrupt' && candidate.status !== 'jailed',
+      )
+      return other ? { kind: 'player', playerId: other.id } : { kind: 'none' }
+    }
+    case 'instant-festival': {
+      const tileId = getFestivalEligibleTiles(state, playerId)[0]
+      return tileId === undefined ? { kind: 'none' } : { kind: 'tile', tileId }
+    }
+    case 'heritage-shield': {
+      const property = Object.values(state.properties).find(
+        (candidate) => candidate.ownerId === playerId && !candidate.shielded,
+      )
+      return property ? { kind: 'tile', tileId: property.tileId } : { kind: 'none' }
+    }
+    default:
+      return { kind: 'none' }
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -199,7 +272,7 @@ function applyCardEffect(
     case 'instant-festival': {
       if (target.kind !== 'tile') return failed('Cần chọn một địa danh đang sở hữu.')
       if (!startFestival(state, playerId, target.tileId)) {
-        return failed('Ô đất không hợp lệ hoặc đã có Festival đang diễn ra.')
+        return failed('Ô đất không hợp lệ hoặc đã có lễ hội đang diễn ra.')
       }
       return done()
     }

@@ -345,9 +345,39 @@ button:disabled {
   min-height: 0;
   margin: 20px auto 12px;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
   align-items: start;
+  align-content: start;
   justify-items: center;
-  padding-top: clamp(10px, 4vh, 44px);
+  row-gap: 10px;
+  padding-top: clamp(8px, 2vh, 18px);
+}
+
+.lobby-layout__title {
+  width: 100%;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.lobby-layout__title h1 {
+  display: inline-block;
+  margin: 0;
+  padding: 8px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 8px 22px rgba(40, 76, 96, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: #1d3152;
+  font-family: Arial, 'Segoe UI', sans-serif;
+  font-size: clamp(1.08rem, 2vw, 1.58rem);
+  font-weight: 900;
+  letter-spacing: 0.045em;
+  line-height: 1.05;
+  text-shadow: 0 1px 0 #fff, 0 3px 8px rgba(29, 49, 82, 0.16);
+}
+
+.lobby-layout__title::after {
+  display: none;
 }
 
 .setup-card {
@@ -415,6 +445,20 @@ button:disabled {
   color: var(--bt-cyan-deep);
   font-size: 0.82rem;
   font-weight: 900;
+}
+
+.setup-summary__money strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.setup-summary__money img {
+  width: 22px;
+  height: 17px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 0 rgba(63, 104, 47, 0.24));
 }
 
 .setup-summary small {
@@ -1173,6 +1217,31 @@ button:disabled {
     0 0 0 3px color-mix(in srgb, var(--player-color), transparent 58%),
     0 15px 26px rgba(45, 76, 96, 0.16);
   transform: translateX(4px);
+  animation: player-active-blink 1.05s ease-in-out infinite;
+}
+
+/* Viền sáng nhấp nháy để nổi bật đội đang tới lượt (blink blink). */
+@keyframes player-active-blink {
+  0%,
+  100% {
+    box-shadow:
+      0 5px 0 color-mix(in srgb, var(--player-color), #63717d 42%),
+      0 0 0 3px color-mix(in srgb, var(--player-color), transparent 58%),
+      0 15px 26px rgba(45, 76, 96, 0.16);
+  }
+  50% {
+    box-shadow:
+      0 5px 0 color-mix(in srgb, var(--player-color), #63717d 42%),
+      0 0 0 6px color-mix(in srgb, var(--player-color), transparent 18%),
+      0 0 26px 6px color-mix(in srgb, var(--player-color), transparent 38%),
+      0 15px 26px rgba(45, 76, 96, 0.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-card--active {
+    animation: none;
+  }
 }
 
 .player-card--bankrupt {
@@ -1272,16 +1341,15 @@ button:disabled {
 }
 
 .player-card__cash-art {
-  position: absolute;
-  z-index: 0;
-  right: -4px;
-  top: 50%;
-  width: 44px;
-  height: 30px;
+  position: relative;
+  z-index: 1;
+  width: 27px;
+  height: 19px;
   object-fit: contain;
-  opacity: 0.28;
+  flex: 0 0 auto;
+  opacity: 0.95;
   pointer-events: none;
-  transform: translateY(-50%);
+  transform: translateY(1px);
 }
 
 .player-card__cash > span {
@@ -2286,10 +2354,19 @@ button:disabled {
 
 .review-reward > div:last-child {
   display: grid;
+  min-width: 0;
 }
 
 .review-reward strong {
   font-size: 0.82rem;
+}
+
+.review-reward__copy p {
+  margin: 3px 0 0;
+  color: #6f7f89;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .review-reward--full {
@@ -2324,6 +2401,23 @@ button:disabled {
 .primary-game-button:active {
   box-shadow: 0 2px 0 var(--bt-cyan-deep);
   transform: translateY(3px);
+}
+
+/* Keep the earned-card detail and the next-step action balanced in the review modal. */
+.review-modal .review-reward {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  box-sizing: border-box;
+  margin: 14px 0 0;
+  padding: 8px 14px 8px 9px;
+}
+
+.review-modal > .primary-game-button {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 12px;
 }
 
 @keyframes modal-in {
@@ -2546,6 +2640,21 @@ button:disabled {
   margin: 1px 0 0;
   color: #747d8b;
   font-size: 0.49rem;
+}
+
+.card-map-target-hint {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  border: 1px solid rgba(19, 143, 197, 0.28);
+  border-radius: 7px;
+  background: rgba(30, 167, 221, 0.1);
+  color: #137ba8;
+  font-size: 0.49rem;
+  font-weight: 850;
+  line-height: 1.2;
 }
 
 .card-use-panel select {
@@ -2959,6 +3068,47 @@ button:disabled {
   gap: 5px;
 }
 
+/* Bốn ô thông tin (gồm "Tiền của bạn") → lưới 2×2 cho cân đối, dễ đọc. */
+.decision-metrics--quad {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.takeover-summary {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.takeover-summary__cash .decision-metric {
+  padding: 11px 13px;
+  border: 2px solid #b8dce8;
+  border-radius: 12px;
+  background: #eaf7fa;
+  color: var(--bt-cyan-deep);
+}
+
+.takeover-summary__cash .decision-metric small {
+  color: #56828e;
+}
+
+.takeover-summary__cash .decision-metric strong {
+  font-size: 1.08rem;
+}
+
+.takeover-summary__details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.takeover-summary__details .decision-metric {
+  min-height: 48px;
+  align-content: center;
+  padding: 8px 9px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .decision-metric {
   display: grid;
   min-width: 0;
@@ -2971,14 +3121,14 @@ button:disabled {
 
 .decision-metric small {
   color: #89919b;
-  font-size: 0.48rem;
+  font-size: 0.52rem;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .decision-metric strong {
   overflow: hidden;
-  font-size: 0.62rem;
+  font-size: 0.82rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3821,6 +3971,15 @@ button:disabled {
     font-size: 1.2rem;
   }
 
+  .lobby-layout__title {
+    margin-bottom: 5px;
+  }
+
+  .lobby-layout__title h1 {
+    padding: 6px 13px;
+    font-size: 1.05rem;
+  }
+
   .setup-fieldset {
     padding: 6px 7px 7px;
     border-radius: 12px;
@@ -4285,6 +4444,15 @@ button:disabled {
     padding: 12px 15px;
   }
 
+  .lobby-layout__title {
+    margin-bottom: 4px;
+  }
+
+  .lobby-layout__title h1 {
+    padding: 5px 10px;
+    font-size: 0.92rem;
+  }
+
   .team-setup {
     min-height: 52px;
   }
@@ -4528,9 +4696,69 @@ button:disabled {
 }
 
 .strategy-dock {
+  position: fixed;
+  top: 50%;
+  left: 18px;
   width: min(700px, calc(100vw - 36px));
-  grid-template-columns: minmax(180px, 0.82fr) minmax(300px, 1.35fr);
-  transform: translateY(-218px);
+  max-width: 340px;
+  max-height: min(38vh, 320px);
+  grid-template-columns: 1fr;
+  transform: translateY(-50%);
+  padding: 10px;
+}
+
+.strategy-dock__intro {
+  display: none;
+}
+
+.tile-picker-card--direct {
+  width: min(320px, calc(100vw - 36px));
+  max-width: 320px;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 12px;
+  text-align: left;
+}
+
+/* Căn giữa màn hình cho thẻ chọn-trên-bàn-cờ. Rule `.action-dock-wrap > .action-dock`
+   ép position:relative (độ cụ thể cao hơn thẻ đơn) → ta dùng selector đủ cụ thể để
+   thắng, reset mọi offset và để wrap (place-items:center) căn giữa. */
+.action-dock-wrap > .action-dock.tile-picker-card--direct {
+  position: relative;
+  inset: auto;
+  transform: none;
+  width: min(360px, calc(100vw - 36px));
+  max-width: 360px;
+}
+
+.tile-picker-card--direct .tile-picker-card__icon,
+.tile-picker-card--direct .tile-picker-card__copy {
+  display: block;
+}
+
+.tile-picker-card--direct .tile-picker-card__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+}
+
+.tile-picker-map-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(19, 143, 197, 0.24);
+  border-radius: 10px;
+  background: rgba(30, 167, 221, 0.1);
+  color: var(--bt-cyan-deep);
+  font-size: 0.59rem;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.tile-picker-card--direct .tile-picker-card__actions {
+  justify-content: flex-end;
 }
 
 .movement-dock {
@@ -4601,7 +4829,13 @@ button:disabled {
   }
 
   .strategy-dock {
-    transform: translateY(-166px);
+    left: 12px;
+    transform: translateY(-50%);
+  }
+
+  .tile-picker-card--direct {
+    right: 12px;
+    transform: translateY(-50%);
   }
 
   .movement-dock {
@@ -4686,7 +4920,24 @@ button:disabled {
 
   .strategy-dock {
     grid-template-columns: 1fr;
-    transform: translateY(-124px);
+    top: auto;
+    right: 10px;
+    bottom: 78px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    max-height: min(32vh, 250px);
+    transform: none;
+  }
+
+  .tile-picker-card--direct {
+    top: auto;
+    right: 10px;
+    bottom: 78px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    transform: none;
   }
 
   .movement-dock {
@@ -4697,11 +4948,11 @@ button:disabled {
 /* Automatic settlement feedback */
 .auto-action-card {
   display: grid;
-  min-height: 106px;
+  min-height: 118px;
   grid-template-columns: 58px minmax(0, 1fr) auto;
   align-items: center;
   gap: 14px;
-  padding: 14px 18px;
+  padding: 16px 18px;
   border-left: 5px solid var(--player-color, var(--bt-cyan));
 }
 
@@ -4735,7 +4986,14 @@ button:disabled {
   color: #737e8b;
   font-size: 0.62rem;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.5;
+}
+
+.auto-card-reveal .auto-action-card__copy p {
+  padding-bottom: 3px;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  overflow: visible;
 }
 
 .auto-action-card__copy small {
@@ -4839,8 +5097,265 @@ button:disabled {
     font-size: 0.52rem;
   }
 
+  .auto-card-reveal .auto-action-card__copy p {
+    padding-bottom: 2px;
+    font-size: 0.58rem;
+    line-height: 1.5;
+  }
+
+  .action-dock-wrap > .auto-action-card.auto-card-reveal {
+    gap: 10px;
+    padding: 22px;
+  }
+
+  .auto-card-reveal__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .auto-card-reveal__skip {
+    justify-content: center;
+  }
+
   .auto-money-feedback__amount {
     min-width: 72px;
     font-size: 0.9rem;
+  }
+}
+
+/* Centered action modals --------------------------------------------------- */
+.action-dock-wrap--modal::before {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  background: rgba(9, 21, 31, 0.66);
+  backdrop-filter: blur(5px) saturate(0.82);
+  content: '';
+  pointer-events: auto;
+}
+
+.action-dock-wrap > .action-dock {
+  position: relative;
+  z-index: 1;
+}
+
+.action-dock-wrap > .decision-card,
+.action-dock-wrap > .auto-action-card,
+.action-dock-wrap > .auto-action-pending,
+.action-dock-wrap > .tile-picker-card:not(.tile-picker-card--direct) {
+  width: min(520px, calc(100vw - 34px));
+  min-height: 0;
+  max-height: min(78vh, 560px);
+  aspect-ratio: 1;
+  border-radius: 30px;
+  overflow-y: auto;
+}
+
+.action-dock-wrap > .decision-card {
+  aspect-ratio: auto;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto auto;
+  align-items: start;
+  gap: 16px;
+  padding: 28px;
+  text-align: center;
+}
+
+.action-dock-wrap > .decision-card::before {
+  top: 12px;
+  right: 12px;
+  bottom: auto;
+  left: 12px;
+  width: auto;
+  height: 5px;
+  border-radius: 8px;
+}
+
+.action-dock-wrap > .decision-card .decision-card__icon {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto;
+  border-radius: 22px;
+  font-size: 1.5rem;
+}
+
+.action-dock-wrap > .decision-card .decision-card__heading {
+  width: 100%;
+}
+
+.action-dock-wrap > .decision-card .decision-card__heading h2 {
+  display: block;
+  max-height: none;
+  overflow: visible;
+  font-size: clamp(1.2rem, 2.2vw, 1.65rem);
+  line-height: 1.24;
+  padding-bottom: 2px;
+}
+
+.action-dock-wrap > .decision-card .decision-card__body {
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.action-dock-wrap > .decision-card .decision-copy {
+  max-width: 31rem;
+  margin-right: auto;
+  margin-left: auto;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.action-dock-wrap > .decision-card .decision-actions,
+.action-dock-wrap > .decision-card .tile-picker-card__actions {
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+.action-dock-wrap > .auto-action-card {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr;
+  justify-items: center;
+  gap: 14px;
+  padding: 30px;
+  text-align: center;
+}
+
+.action-dock-wrap > .auto-action-card.auto-card-reveal {
+  aspect-ratio: auto;
+  grid-template-rows: auto auto auto;
+  gap: 14px;
+  padding: 28px 30px 22px;
+}
+
+/* Thẻ "chốt lượt" & "tiền" co vừa nội dung — không ép vuông, không chừa
+   khoảng trắng lớn ở dưới; dấu check / số tiền nằm ngay dưới phần chữ. */
+.action-dock-wrap > .auto-action-card.auto-turn-feedback,
+.action-dock-wrap > .auto-action-card.auto-money-feedback {
+  aspect-ratio: auto;
+  min-height: 0;
+  grid-template-rows: auto auto auto;
+  gap: 16px;
+  padding: 32px 30px 30px;
+}
+
+.action-dock-wrap > .auto-action-card .auto-action-card__avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  font-size: 1.8rem;
+}
+
+.action-dock-wrap > .auto-action-card .auto-action-card__copy h2 {
+  font-size: 1.3rem;
+}
+
+.action-dock-wrap > .auto-action-card .auto-action-card__copy p,
+.action-dock-wrap > .auto-action-card .auto-action-card__copy small {
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.auto-card-reveal__reading {
+  margin-top: 7px;
+  color: color-mix(in srgb, var(--player-color), #5e6976 38%);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.auto-card-reveal__footer {
+  display: flex;
+  width: 100%;
+  align-items: end;
+  gap: 12px;
+}
+
+.auto-card-reveal .reading-timer--card {
+  flex: 1 1 auto;
+  width: auto;
+  margin: 0;
+}
+
+.auto-card-reveal__skip {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border: 2px solid #d9d5cc;
+  border-radius: 11px;
+  background: #f2f0eb;
+  color: #697586;
+  font-size: 0.68rem;
+  font-weight: 900;
+  transition: transform 150ms ease, background 150ms ease;
+}
+
+.auto-card-reveal__skip:hover {
+  background: #e8e5dd;
+  transform: translateY(-1px);
+}
+
+.auto-card-reveal__skip:active {
+  transform: translateY(1px);
+}
+
+.action-dock-wrap > .auto-action-card > svg {
+  align-self: end;
+}
+
+.action-dock-wrap > .auto-action-pending {
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  padding: 28px;
+  text-align: center;
+}
+
+.reading-timer {
+  display: grid;
+  gap: 6px;
+  width: min(270px, 100%);
+  margin: 18px auto 0;
+}
+
+.reading-timer__track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e6e2d8;
+}
+
+.reading-timer__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--bt-amber), var(--bt-cyan));
+  transition: width 900ms linear;
+}
+
+.reading-timer small {
+  color: #89919b;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 760px) {
+  .action-dock-wrap > .decision-card,
+  .action-dock-wrap > .auto-action-card,
+  .action-dock-wrap > .auto-action-pending,
+  .action-dock-wrap > .tile-picker-card:not(.tile-picker-card--direct) {
+    width: min(440px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+  }
+
+  .action-dock-wrap > .decision-card,
+  .action-dock-wrap > .auto-action-card {
+    padding: 22px;
   }
 }
