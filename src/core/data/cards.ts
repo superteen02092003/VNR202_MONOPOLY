@@ -1,8 +1,8 @@
 import type { CardDefinition, CardEffect } from '../types'
 
 /**
- * Bộ Thẻ Cơ hội. Nhóm trả lời đúng câu hỏi VNR202 sẽ được bốc 1 lá,
- * cất trong túi đồ (tối đa GAME_CONFIG.MAX_CARDS lá) và yêu cầu Host kích hoạt sau.
+ * Bộ Thẻ Cơ hội. Nhóm trả lời đúng câu hỏi VNR202 hoặc dừng ở ô Cơ hội sẽ
+ * rút và kích hoạt ngay; riêng Vé Thông Hành được lưu để dùng khi Kẹt xe.
  */
 export const CARD_DEFINITIONS: CardDefinition[] = [
   {

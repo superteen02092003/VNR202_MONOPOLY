@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Edges, Html, RoundedBox } from '@react-three/drei'
 
-import { BOARD_3D, BUILD_LEVEL_LABEL, formatPropertyPrice } from '../core'
+import { BOARD_3D, BUILD_LEVEL_LABEL, computeRent, formatPropertyPrice } from '../core'
 import type { Tile as TileData } from '../core'
 import { useGameStore } from '../store/useGameStore'
 import { useCardTargeting } from '../components/CardTargetContext'
@@ -40,6 +40,11 @@ export function Tile({ tile }: TileProps) {
   const owner = useGameStore((s) =>
     property?.ownerId ? s.players.find((p) => p.id === property.ownerId) : undefined,
   )
+  // Giá thuê hiện tại — chỉ có khi ô đã có chủ & đã xây (level > 0); ô trống = null.
+  const rent = useGameStore((s) => {
+    const p = s.properties[tile.id]
+    return p?.ownerId && p.level > 0 ? computeRent(s, tile.id) : null
+  })
   const activeTileId = useGameStore((s) => {
     const currentId = s.turnOrder[s.currentPlayerIndex]
     return s.players.find((player) => player.id === currentId)?.position
@@ -86,7 +91,7 @@ export function Tile({ tile }: TileProps) {
   //  cạnh phải (3):  xoay theo ô
   //  cạnh trên/dưới (0,2) + ô đặc biệt/góc: xoay ngược để chữ luôn thẳng đứng.
   const alignedRotationY = side === 1 ? Math.PI : side === 3 ? 0 : -geometryRotationY
-  const artworkRotationY = isProperty || tile.type === 'tax'
+  const artworkRotationY = isProperty || tile.type === 'tax' || tile.type === 'chance'
     ? alignedRotationY
     : -geometryRotationY
 
@@ -174,6 +179,7 @@ export function Tile({ tile }: TileProps) {
           accentColor={accentColor}
           depth={depth}
           isCorner={isCorner}
+          rent={rent}
           tile={tile}
           width={width}
         />

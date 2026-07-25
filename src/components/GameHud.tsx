@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 
-import { GAME_CONFIG, formatMoney, getTile } from '../core'
+import { formatMoney, getTile } from '../core'
 import type { Player } from '../core'
 import { selectIsEndgameWarning, useGameStore } from '../store/useGameStore'
 import { CharacterMark } from './CharacterMark'
@@ -194,13 +194,8 @@ function PlayerCard({
             <GameIcon name={player.status === 'jailed' ? 'lock' : 'map'} size={12} />
             {statusLabel}
           </span>
-          <span>{owned} địa danh</span>
+          <span>{owned} BĐS</span>
         </div>
-      </div>
-      <div className="player-card__inventory" title={`${player.cards.length}/${GAME_CONFIG.MAX_CARDS} Thẻ Cơ hội`}>
-        {Array.from({ length: GAME_CONFIG.MAX_CARDS }, (_, cardIndex) => (
-          <i className={cardIndex < player.cards.length ? 'is-filled' : ''} key={cardIndex} />
-        ))}
       </div>
     </article>
   )

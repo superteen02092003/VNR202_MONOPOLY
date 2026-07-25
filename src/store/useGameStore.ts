@@ -200,7 +200,15 @@ export const useGameStore = create<GameStore>()(persist(
           return
         }
 
-        resolveTrivia(state, answerIndex)
+        const trivia = resolveTrivia(state, answerIndex)
+        if (trivia) {
+          result = {
+            ...ok,
+            cardEffect: trivia.cardEffect,
+            cardSaved: trivia.cardSaved,
+            cardUsedImmediately: trivia.cardUsedImmediately,
+          }
+        }
         state.currentQuestion = null
         openTacticalPhase(state)
       })

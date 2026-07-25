@@ -162,10 +162,12 @@ function IconPaths({ name }: { name: GameIconName }) {
     case 'festival':
       return (
         <>
-          <path {...common} d="M4.5 10.5h15L12 5Z" />
-          <path {...common} d="M6.5 10.5v8M17.5 10.5v8M4.5 18.5h15" />
-          <path {...common} d="M8 14h8M8 18.5v2M16 18.5v2" />
-          <path {...common} d="M5 5.5V3.8M19 5.5V3.8M12 3.5V2" />
+          <path {...common} d="M5.2 8.4h13.6l-1.2 10.1H6.4Z" />
+          <path {...common} d="M4.2 6.1h15.6l-2.1 2.3H6.3Z" />
+          <path {...common} d="M8.2 12.3c.8-.9 1.7-.9 2.5 0 .8.9 1.7.9 2.5 0 .8-.9 1.7-.9 2.5 0" />
+          <path {...common} d="M8 18.5v2M16 18.5v2M4.2 20.5h15.6" />
+          <path {...common} d="m5.4 3.7 1.2 1.2M18.6 3.7l-1.2 1.2M12 2.5v1.8" />
+          <path {...common} d="m12 10.3.7 1.4 1.5.2-1.1 1 .3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1 1.5-.2Z" />
         </>
       )
     case 'help':

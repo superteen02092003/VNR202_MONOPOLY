@@ -17,7 +17,7 @@ import type { CardEffect, CardInstance, CardTarget, GameCore, PlayerId } from '.
 
 export interface DrawResult {
   card: CardInstance | null
-  /** Túi đồ đã đầy nên không bốc được. */
+  /** Giữ lại để tương thích với UI/store cũ; hệ thống mới không giới hạn túi thẻ. */
   bagFull: boolean
   saved: boolean
   usedImmediately: boolean
@@ -28,28 +28,22 @@ export interface DrawOptions {
   immediate?: boolean
 }
 
-/** Bốc 1 Thẻ Cơ hội theo trọng số. Túi đồ tối đa GAME_CONFIG.MAX_CARDS lá. */
+/**
+ * Bốc 1 Thẻ Cơ hội theo trọng số.
+ * Mọi thẻ được kích hoạt ngay; chỉ Vé Thông Hành được lưu để dùng khi Kẹt xe.
+ */
 export function drawCard(
   state: GameCore,
   playerId: PlayerId,
   options: DrawOptions = {},
 ): DrawResult {
   const player = getPlayer(state, playerId)
-  const immediate = options.immediate === true
+  void options
   const definition = pickWeighted(state, CARD_DEFINITIONS, (c) => c.weight)
 
   if (!definition) return { card: null, bagFull: false, saved: false, usedImmediately: false, movedPlayer: false }
 
-  const shouldSave = !immediate || definition.effect === 'escape-jail'
-  if (shouldSave && player.cards.length >= GAME_CONFIG.MAX_CARDS) {
-    pushLog(
-      state,
-      'card',
-      `${player.name} trả lời đúng nhưng túi đồ đã đầy (${GAME_CONFIG.MAX_CARDS} thẻ) — không bốc thêm được.`,
-      playerId,
-    )
-    return { card: null, bagFull: true, saved: false, usedImmediately: false, movedPlayer: false }
-  }
+  const shouldSave = definition.effect === 'escape-jail'
 
   const card: CardInstance = { instanceId: nextId(state, 'card'), effect: definition.effect }
   if (shouldSave) {
@@ -101,7 +95,11 @@ function getImmediateCardTarget(state: GameCore, playerId: PlayerId, effect: Car
       return tile ? { kind: 'tile', tileId: tile.id } : { kind: 'none' }
     }
     case 'teleport': {
-      const tile = BOARD.find((candidate) => candidate.type === 'property' && candidate.id !== player.position)
+      const tile = BOARD.find((candidate) => {
+        if (candidate.type !== 'property' || candidate.id === player.position) return false
+        const property = getPropertyState(state, candidate.id)
+        return property.ownerId === null || property.ownerId === playerId
+      })
       return { kind: 'tile', tileId: tile?.id ?? player.position }
     }
     case 'swap-position': {

@@ -58,10 +58,9 @@ export const BOARD: Tile[] = [
   prop(11, 'dong-bang-song-hong', 'Ninh Bình', 'Tràng An – Cố đô Hoa Lư', 160, 16),
   {
     id: 12,
-    type: 'tax',
-    name: 'Thuế',
-    description: 'Thuế.',
-    amount: 100,
+    type: 'chance',
+    name: 'Ô Cơ hội',
+    description: 'Bốc ngay 1 Thẻ Cơ hội nếu túi đồ còn chỗ trống.',
   },
   prop(13, 'bac-trung-bo', 'Nghệ An', 'Khu di tích Kim Liên', 180, 16),
   prop(14, 'bac-trung-bo', 'Quảng Bình', 'Vườn quốc gia Phong Nha – Kẻ Bàng', 180, 16),
