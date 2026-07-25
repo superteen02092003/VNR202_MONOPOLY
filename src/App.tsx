@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 
 import { ActionDock } from './components/ActionDock'
+import { CardTargetProvider } from './components/CardTargetContext'
 import { GameHud } from './components/GameHud'
 import { GameStartOverlay } from './components/GameStartOverlay'
 import { LobbyScreen } from './components/LobbyScreen'
@@ -16,7 +17,9 @@ const GameCanvas = lazy(() =>
 export default function App() {
   return (
     <NoticeProvider>
-      <AppView />
+      <CardTargetProvider>
+        <AppView />
+      </CardTargetProvider>
     </NoticeProvider>
   )
 }

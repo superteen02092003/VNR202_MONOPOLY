@@ -13,6 +13,8 @@ interface TileArtworkProps {
   accentColor: string
   depth: number
   isCorner: boolean
+  /** Tiền thuê hiện tại của ô đất; null = chưa có chủ → KHÔNG hiện giá. */
+  rent: number | null
   tile: Tile
   width: number
 }
@@ -46,12 +48,13 @@ const PRICE_BELOW_TILE_IDS = new Set([
 export function TileArtwork({
   accentColor,
   isCorner,
+  rent,
   tile,
   width,
 }: TileArtworkProps) {
   const texture = useMemo(
-    () => createTileTexture(tile, accentColor, isCorner),
-    [accentColor, isCorner, tile],
+    () => createTileTexture(tile, accentColor, isCorner, rent),
+    [accentColor, isCorner, rent, tile],
   )
 
   useEffect(() => () => texture?.dispose(), [texture])
@@ -89,7 +92,7 @@ export function TileArtwork({
   )
 }
 
-function createTileTexture(tile: Tile, accentColor: string, isCorner: boolean) {
+function createTileTexture(tile: Tile, accentColor: string, isCorner: boolean, rent: number | null) {
   if (typeof document === 'undefined') return null
 
   const isProperty = tile.type === 'property'
@@ -110,12 +113,14 @@ function createTileTexture(tile: Tile, accentColor: string, isCorner: boolean) {
     // từ đáy canvas lên để GIÁ (dải màu) vẫn nằm ở mép trong (phía sân) mọi cạnh.
     const side = Math.floor(tile.id / 8)
     const flip = side === 1 || side === 2
+    // Chỉ hiện GIÁ THUÊ khi ô đã có chủ; ô trống thì để không.
+    const priceLabel = rent != null ? formatTilePrice(rent) : ''
     drawPropertyLabel(
       context,
       w,
       h,
       tile.province,
-      formatTilePrice(tile.price),
+      priceLabel,
       accentColor,
       flip,
       PRICE_BELOW_TILE_IDS.has(tile.id),
@@ -204,23 +209,26 @@ function drawPropertyLabel(
   const nameLines = splitLabel(context, province.toLocaleUpperCase('vi-VN'), cardWidth - 36, 60)
   const twoLines = nameLines.length > 1
 
-  // (1) Dải màu vùng miền ở mép ngoài, mang GIÁ tiền.
-  const stripDepth = 126
-  const canvasPriceStart = priceBelow || !flip ? cardHeight - stripDepth : 0
-  const stripStart = flip
-    ? cardHeight - canvasPriceStart - stripDepth
-    : canvasPriceStart
-  const stripTop = Math.min(yAt(stripStart), yAt(stripStart + stripDepth))
-  context.save()
-  roundedRect(context, CARD_INSET, CARD_INSET, cardWidth, cardHeight, radius)
-  context.clip()
-  context.fillStyle = accentColor
-  context.fillRect(CARD_INSET, stripTop, cardWidth, stripDepth)
-  context.restore()
+  // (1) Dải màu vùng miền ở mép ngoài, mang GIÁ THUÊ.
+  //     Chỉ vẽ khi ô đã có chủ (price khác rỗng); ô trống thì bỏ hẳn dải + số.
+  if (price) {
+    const stripDepth = 126
+    const canvasPriceStart = priceBelow || !flip ? cardHeight - stripDepth : 0
+    const stripStart = flip
+      ? cardHeight - canvasPriceStart - stripDepth
+      : canvasPriceStart
+    const stripTop = Math.min(yAt(stripStart), yAt(stripStart + stripDepth))
+    context.save()
+    roundedRect(context, CARD_INSET, CARD_INSET, cardWidth, cardHeight, radius)
+    context.clip()
+    context.fillStyle = accentColor
+    context.fillRect(CARD_INSET, stripTop, cardWidth, stripDepth)
+    context.restore()
 
-  context.fillStyle = '#ffffff'
-  context.font = `900 96px ${LABEL_FONT}`
-  fitText(context, price, width / 2, yAt(stripStart + stripDepth / 2), cardWidth - 32, 96)
+    context.fillStyle = '#ffffff'
+    context.font = `900 96px ${LABEL_FONT}`
+    fitText(context, price, width / 2, yAt(stripStart + stripDepth / 2), cardWidth - 32, 96)
+  }
 
   // (2) TÊN địa danh — to, đậm, nằm giữa vùng trống và dải giá.
   context.fillStyle = '#1f2b45'
@@ -246,7 +254,7 @@ function drawSpecialLabel(
   isCorner: boolean,
 ) {
   const iconY = isCorner ? 196 : 186
-  const iconSize = isCorner ? 116 : 104
+  const iconSize = type === 'chance' ? 280 : isCorner ? 116 : 104
   drawSpecialIcon(context, type, width / 2, iconY, iconSize, accentColor)
 
   context.fillStyle = accentColor
@@ -308,36 +316,81 @@ function drawSpecialIcon(
       context.stroke()
       break
     case 'festival':
-      drawSpark(context, -18, -6, 34)
-      drawSpark(context, 25, -27, 21)
-      drawSpark(context, 29, 25, 16)
+      // Sân khấu lễ hội với mái đình, cột và pháo hoa — dễ nhận ra hơn cụm tia sáng cũ.
+      context.beginPath()
+      context.moveTo(-45, -10)
+      context.lineTo(0, -42)
+      context.lineTo(45, -10)
+      context.moveTo(-35, -10)
+      context.lineTo(35, -10)
+      context.moveTo(-31, -6)
+      context.lineTo(-31, 35)
+      context.moveTo(31, -6)
+      context.lineTo(31, 35)
+      context.moveTo(-42, 35)
+      context.lineTo(42, 35)
+      context.stroke()
+      drawSpark(context, -34, -35, 11)
+      drawSpark(context, 34, -35, 11)
       break
     case 'travel':
+      // Biểu tượng sân bay tối giản: chỉ giữ hình máy bay để ô thoáng và dễ nhận diện.
+      context.lineWidth = 7
       context.beginPath()
-      context.moveTo(-48, 4)
-      context.lineTo(-4, 16)
-      context.lineTo(-1, 44)
-      context.lineTo(11, 48)
-      context.lineTo(24, 20)
-      context.lineTo(50, 27)
-      context.lineTo(58, 18)
-      context.lineTo(26, -2)
-      context.lineTo(57, -23)
-      context.lineTo(48, -32)
-      context.lineTo(10, -13)
-      context.lineTo(-4, -42)
-      context.lineTo(-16, -38)
-      context.lineTo(-14, -9)
-      context.lineTo(-48, -4)
+      context.moveTo(0, -40)
+      context.lineTo(8, -10)
+      context.lineTo(39, 2)
+      context.lineTo(39, 13)
+      context.lineTo(8, 8)
+      context.lineTo(12, 38)
+      context.lineTo(0, 43)
+      context.lineTo(-12, 38)
+      context.lineTo(-8, 8)
+      context.lineTo(-39, 13)
+      context.lineTo(-39, 2)
+      context.lineTo(-8, -10)
       context.closePath()
+      context.fill()
       context.stroke()
       break
     case 'chance':
-      roundedRect(context, -45, -36, 63, 76, 9)
+      // Vòng xoay may mắn: các múi màu, tâm vòng quay và kim chỉ kết quả.
+      context.lineWidth = 5
+      const wheelRadius = 43
+      const segmentColors = [color, '#f7c948', '#fff3b0', color, '#f7c948', '#fff3b0']
+      for (let index = 0; index < segmentColors.length; index += 1) {
+        const start = -Math.PI / 2 + (index * Math.PI * 2) / segmentColors.length
+        const end = -Math.PI / 2 + ((index + 1) * Math.PI * 2) / segmentColors.length
+        context.beginPath()
+        context.moveTo(0, 0)
+        context.arc(0, 0, wheelRadius, start, end)
+        context.closePath()
+        context.fillStyle = segmentColors[index]
+        context.fill()
+        context.strokeStyle = '#fffdf8'
+        context.stroke()
+      }
+      context.beginPath()
+      context.arc(0, 0, wheelRadius, 0, Math.PI * 2)
+      context.strokeStyle = color
       context.stroke()
-      roundedRect(context, -18, -23, 63, 76, 9)
+      context.beginPath()
+      context.moveTo(0, -59)
+      context.lineTo(-10, -42)
+      context.lineTo(10, -42)
+      context.closePath()
+      context.fillStyle = color
+      context.fill()
+      context.beginPath()
+      context.arc(0, 0, 13, 0, Math.PI * 2)
+      context.fillStyle = '#fffdf8'
+      context.fill()
+      context.strokeStyle = color
       context.stroke()
-      drawSpark(context, 14, 8, 22)
+      context.beginPath()
+      context.arc(0, 0, 4, 0, Math.PI * 2)
+      context.fillStyle = color
+      context.fill()
       break
     case 'tax':
       roundedRect(context, -43, -42, 86, 84, 12)

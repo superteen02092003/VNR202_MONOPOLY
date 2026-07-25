@@ -1,8 +1,8 @@
 import type { CardDefinition, CardEffect } from '../types'
 
 /**
- * Bộ Thẻ Cơ hội. Nhóm trả lời đúng câu hỏi VNR202 sẽ được bốc 1 lá,
- * cất trong túi đồ (tối đa GAME_CONFIG.MAX_CARDS lá) và yêu cầu Host kích hoạt sau.
+ * Bộ Thẻ Cơ hội. Nhóm trả lời đúng câu hỏi VNR202 hoặc dừng ở ô Cơ hội sẽ
+ * rút và kích hoạt ngay; riêng Vé Thông Hành được lưu để dùng khi Kẹt xe.
  */
 export const CARD_DEFINITIONS: CardDefinition[] = [
   {
@@ -35,7 +35,7 @@ export const CARD_DEFINITIONS: CardDefinition[] = [
   {
     effect: 'escape-jail',
     name: 'Vé Thông Hành',
-    description: 'Thoát ngay khỏi ô Kẹt xe – Cách ly mà không mất phí giải tỏa.',
+    description: 'Thoát ngay khỏi ô Kẹt xe mà không mất phí giải tỏa.',
     targetKind: 'none',
     weight: 3,
     playableBeforeRoll: true,
@@ -71,7 +71,7 @@ export const CARD_DEFINITIONS: CardDefinition[] = [
   {
     effect: 'instant-festival',
     name: 'Đăng Cai Đột Xuất',
-    description: 'Tổ chức Festival ngay trên một địa danh đang sở hữu — tiền lưu trú nhân đôi.',
+    description: 'Đăng cai lễ hội ngay trên một địa danh đang sở hữu — tiền lưu trú nhân đôi.',
     targetKind: 'own-tile',
     weight: 2,
     playableBeforeRoll: true,

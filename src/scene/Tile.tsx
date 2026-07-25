@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Edges, Html, RoundedBox } from '@react-three/drei'
 
-import { BOARD_3D, BUILD_LEVEL_LABEL, formatPropertyPrice } from '../core'
+import { BOARD_3D, BUILD_LEVEL_LABEL, computeRent, formatPropertyPrice } from '../core'
 import type { Tile as TileData } from '../core'
 import { useGameStore } from '../store/useGameStore'
+import { useCardTargeting } from '../components/CardTargetContext'
 import { getTileTransform } from './layout'
 import { TileArtwork } from './TileArtwork'
 
@@ -39,10 +40,16 @@ export function Tile({ tile }: TileProps) {
   const owner = useGameStore((s) =>
     property?.ownerId ? s.players.find((p) => p.id === property.ownerId) : undefined,
   )
+  // Giá thuê hiện tại — chỉ có khi ô đã có chủ & đã xây (level > 0); ô trống = null.
+  const rent = useGameStore((s) => {
+    const p = s.properties[tile.id]
+    return p?.ownerId && p.level > 0 ? computeRent(s, tile.id) : null
+  })
   const activeTileId = useGameStore((s) => {
     const currentId = s.turnOrder[s.currentPlayerIndex]
     return s.players.find((player) => player.id === currentId)?.position
   })
+  const { active: cardTargeting, select: selectCardTarget } = useCardTargeting()
 
   const { position, rotationY, size, isCorner } = getTileTransform(tile.id)
   const [width, depth] = size
@@ -52,12 +59,25 @@ export function Tile({ tile }: TileProps) {
   const isProperty = tile.type === 'property'
   const special = isProperty ? null : SPECIAL_STYLE[tile.type]
   const isActive = activeTileId === tile.id
+  const targetValues = cardTargeting?.targetValues
+  const canSelectTile = Boolean(
+    cardTargeting &&
+      (cardTargeting.kind === 'any-tile' ||
+        (isProperty &&
+          ((cardTargeting.kind === 'own-tile' && property?.ownerId === cardTargeting.playerId) ||
+            (cardTargeting.kind === 'opponent-tile' &&
+              Boolean(property?.ownerId) &&
+              property?.ownerId !== cardTargeting.playerId)))) &&
+      (!targetValues || targetValues.includes(String(tile.id))),
+  )
 
   const surfaceColor = isProperty ? '#f5f1ea' : (special?.surface ?? '#918ca0')
   // Chữ giá luôn dùng màu vùng để đủ tương phản; màu đội đã có ribbon/outline riêng.
   const accentColor =
     (isProperty ? REGION_LABEL_COLOR[tile.region] : special?.accent) ?? '#696576'
-  const edgeColor = isActive
+  const edgeColor = canSelectTile
+    ? '#f5b400'
+    : isActive
     ? '#ffffff'
     : hovered
       ? '#138fc5'
@@ -71,12 +91,17 @@ export function Tile({ tile }: TileProps) {
   //  cạnh phải (3):  xoay theo ô
   //  cạnh trên/dưới (0,2) + ô đặc biệt/góc: xoay ngược để chữ luôn thẳng đứng.
   const alignedRotationY = side === 1 ? Math.PI : side === 3 ? 0 : -geometryRotationY
-  const artworkRotationY = isProperty || tile.type === 'tax'
+  const artworkRotationY = isProperty || tile.type === 'tax' || tile.type === 'chance'
     ? alignedRotationY
     : -geometryRotationY
 
   return (
     <group
+      onPointerDown={(event) => {
+        if (!canSelectTile) return
+        event.stopPropagation()
+        selectCardTarget({ kind: 'tile', tileId: tile.id })
+      }}
       position={position}
       rotation={[0, geometryRotationY, 0]}
       userData={{ role: 'board-tile', tileId: tile.id }}
@@ -154,6 +179,7 @@ export function Tile({ tile }: TileProps) {
           accentColor={accentColor}
           depth={depth}
           isCorner={isCorner}
+          rent={rent}
           tile={tile}
           width={width}
         />

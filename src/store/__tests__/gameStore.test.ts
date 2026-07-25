@@ -403,7 +403,7 @@ describe('Các ô đặc biệt', () => {
   })
 
   it('ô Thuế bắt buộc nộp cho ngân hàng', () => {
-    const TAX_TILE = 12
+    const TAX_TILE = 28
     store().answerTrivia(null)
     landOn(TAX_TILE)
 
@@ -423,7 +423,7 @@ describe('Các ô đặc biệt', () => {
 
     expect(store().pendingAction.kind).toBe('chance')
     expect(store().drawChanceCard().ok).toBe(true)
-    expect(store().players[0].cards).toHaveLength(1)
+    expect(store().players[0].cards.every((card) => card.effect === 'escape-jail')).toBe(true)
   })
 })
 

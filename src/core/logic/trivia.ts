@@ -3,7 +3,7 @@ import { drawCard } from './cards'
 import { pushEvent, pushLog } from './log'
 import { getPlayer } from './players'
 import { pickOne } from './random'
-import type { GameCore, Question } from '../types'
+import type { CardEffect, GameCore, Question } from '../types'
 
 /**
  * Rút một câu hỏi VNR202 chưa dùng trong ván này.
@@ -26,8 +26,11 @@ export function drawQuestion(state: GameCore): Question | null {
 export interface TriviaOutcome {
   correct: boolean
   question: Question
-  /** Nhóm có nhận được Thẻ Cơ hội không (trả lời đúng nhưng túi đầy thì không). */
+  /** Nhóm có rút được Thẻ Cơ hội hay không. */
   cardDrawn: boolean
+  cardEffect: CardEffect | null
+  cardSaved: boolean
+  cardUsedImmediately: boolean
 }
 
 /**
@@ -60,6 +63,13 @@ export function resolveTrivia(state: GameCore, answerIndex: number | null): Triv
 
   pushEvent(state, correct ? 'trivia-correct' : 'trivia-wrong', playerId)
 
-  const cardDrawn = correct ? drawCard(state, playerId).card !== null : false
-  return { correct, question, cardDrawn }
+  const drawn = correct ? drawCard(state, playerId, { immediate: true }) : null
+  return {
+    correct,
+    question,
+    cardDrawn: drawn?.card !== null,
+    cardEffect: drawn?.card?.effect ?? null,
+    cardSaved: drawn?.saved ?? false,
+    cardUsedImmediately: drawn?.usedImmediately ?? false,
+  }
 }

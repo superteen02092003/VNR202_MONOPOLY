@@ -236,7 +236,7 @@ export interface Player {
   status: PlayerStatus
   /** Số lượt còn phải nghỉ ở ô Kẹt xe / Cách ly. */
   jailTurnsLeft: number
-  /** Túi đồ, tối đa GAME_CONFIG.MAX_CARDS lá. */
+  /** Các thẻ đặc thù được lưu lại; hiện chỉ gồm Vé Thông Hành. */
   cards: CardInstance[]
 
   /* --- Hiệu ứng tạm thời (reset ở đầu mỗi lượt của nhóm) --- */

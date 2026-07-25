@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { getCharacter } from '../core'
 import type { PlayerId } from '../core'
 import { useGameStore } from '../store/useGameStore'
+import { useCardTargeting } from '../components/CardTargetContext'
 import { CharacterModel } from './CharacterModel'
 import { PlaceholderPawn } from './PlaceholderPawn'
 import { useModelAvailability } from './useModelAvailability'
@@ -24,6 +25,7 @@ export function Pawn({ playerId }: PawnProps) {
   const player = useGameStore((s) => s.players.find((p) => p.id === playerId))
   const isCurrent = useGameStore((s) => s.turnOrder[s.currentPlayerIndex] === playerId)
   const { groupRef, animation } = usePawnMotion(playerId)
+  const { active: cardTargeting, select: selectCardTarget } = useCardTargeting()
 
   const character = player ? getCharacter(player.characterId) : null
   const availability = useModelAvailability(character?.modelUrl ?? '')
@@ -31,9 +33,22 @@ export function Pawn({ playerId }: PawnProps) {
   if (!player || !character) return null
 
   const bankrupt = player.status === 'bankrupt'
+  const canSelectPlayer = Boolean(
+    cardTargeting?.kind === 'player' &&
+      cardTargeting.playerId !== playerId &&
+      player.status !== 'bankrupt' &&
+      (!cardTargeting.targetValues || cardTargeting.targetValues.includes(playerId)),
+  )
 
   return (
-    <group ref={groupRef}>
+    <group
+      ref={groupRef}
+      onPointerDown={(event) => {
+        if (!canSelectPlayer) return
+        event.stopPropagation()
+        selectCardTarget({ kind: 'player', playerId })
+      }}
+    >
       {/* Vòng sáng đánh dấu nhóm đang tới lượt */}
       {isCurrent && !bankrupt && (
         <>

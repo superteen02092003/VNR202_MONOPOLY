@@ -2,6 +2,7 @@ import type { SVGProps } from 'react'
 
 export type GameIconName =
   | 'alert'
+  | 'airport'
   | 'banknote'
   | 'card-spark'
   | 'cards'
@@ -14,6 +15,7 @@ export type GameIconName =
   | 'crown'
   | 'dice'
   | 'flag'
+  | 'festival'
   | 'help'
   | 'history'
   | 'info'
@@ -79,6 +81,13 @@ function IconPaths({ name }: { name: GameIconName }) {
           <path {...common} d="M6.5 8.5h-1v1M17.5 8.5h1v1M6.5 15.5h-1v-1M17.5 15.5h1v-1" />
           <circle {...common} cx="12" cy="12" r="3" />
           <path {...common} d="M12 10.2v3.6M10.8 11h1.8a.8.8 0 0 1 0 1.6h-1.2a.8.8 0 0 0 0 1.6h1.8" />
+        </>
+      )
+    case 'airport':
+      return (
+        <>
+          <path {...common} d="M4 18.5h16M7 18.5l5-13 5 13M9.2 14.2h5.6" />
+          <path {...common} d="m12 5.5 2.5 2.2M12 5.5 9.5 7.7M8 21h8" />
         </>
       )
     case 'card-spark':
@@ -148,6 +157,17 @@ function IconPaths({ name }: { name: GameIconName }) {
         <>
           <path {...common} d="M6.5 20V4.5" />
           <path {...common} d="M7 5h10l-2.4 3L17 11H7" />
+        </>
+      )
+    case 'festival':
+      return (
+        <>
+          <path {...common} d="M5.2 8.4h13.6l-1.2 10.1H6.4Z" />
+          <path {...common} d="M4.2 6.1h15.6l-2.1 2.3H6.3Z" />
+          <path {...common} d="M8.2 12.3c.8-.9 1.7-.9 2.5 0 .8.9 1.7.9 2.5 0 .8-.9 1.7-.9 2.5 0" />
+          <path {...common} d="M8 18.5v2M16 18.5v2M4.2 20.5h15.6" />
+          <path {...common} d="m5.4 3.7 1.2 1.2M18.6 3.7l-1.2 1.2M12 2.5v1.8" />
+          <path {...common} d="m12 10.3.7 1.4 1.5.2-1.1 1 .3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1 1.5-.2Z" />
         </>
       )
     case 'help':

@@ -108,10 +108,6 @@ export function GameStartOverlay() {
       >
         <div className="match-start-card__topline">
           <BrandLogo compact />
-          <span>
-            <i />
-            PHÒNG ĐẤU ĐÃ SẴN SÀNG
-          </span>
         </div>
 
         <div
