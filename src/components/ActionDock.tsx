@@ -475,9 +475,14 @@ function TriviaReview({
               <GameIcon name="card-spark" size={29} style={{ opacity: 1 }} />
             </div>
             <div className="review-reward__copy">
-              <small>{review.earnedCard ? 'THẺ ĐƯỢC LƯU' : 'THẺ ĐÃ KÍCH HOẠT'}</small>
+              <small>{review.earnedCard ? 'THẺ ĐÃ VÀO TÚI ĐỒ' : 'THẺ ĐÃ KÍCH HOẠT'}</small>
               <strong>{rewardCard.name}</strong>
               <p>{rewardCard.description}</p>
+              {review.earnedCard && (
+                <p className="review-reward__hint">
+                  Dùng ở Vòng Chiến thuật: bấm thẻ trong túi rồi chọn mục tiêu ngay trên bàn cờ.
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -908,7 +913,13 @@ function AutomaticOverlay({ onSkip, overlay }: { onSkip?: () => void; overlay: A
           <span className="section-kicker">THẺ CƠ HỘI</span>
           <h2>{overlay.card ? overlay.card.name : 'Chưa có thẻ phù hợp'}</h2>
           <p>{overlay.card?.description ?? 'Lượt chơi tiếp tục tự động.'}</p>
-          <div className="auto-card-reveal__reading">Đọc hiệu ứng thẻ trước khi tiếp tục</div>
+          <div className="auto-card-reveal__reading">
+            {overlay.saved
+              ? '✓ Đã lưu vào Túi Thẻ Cơ hội — tới Vòng Chiến thuật, bấm thẻ rồi chọn mục tiêu ngay trên bàn cờ.'
+              : overlay.usedImmediately
+                ? 'Thẻ đã được kích hoạt ngay khi rút.'
+                : 'Không có mục tiêu phù hợp — thẻ được bỏ qua.'}
+          </div>
         </div>
         <div className="auto-card-reveal__footer">
           <div className="reading-timer reading-timer--card">

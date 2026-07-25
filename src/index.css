@@ -2369,6 +2369,12 @@ button:disabled {
   line-height: 1.35;
 }
 
+/* Hướng dẫn cách dùng thẻ vừa lưu — nổi bật để người chơi biết bước kế tiếp. */
+.review-reward__copy .review-reward__hint {
+  color: var(--bt-cyan-deep, #137ba8);
+  font-weight: 800;
+}
+
 .review-reward--full {
   filter: grayscale(0.7);
   opacity: 0.72;
