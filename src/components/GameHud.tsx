@@ -80,7 +80,11 @@ function AccessibilityControls() {
         aria-label={isTimerRunning ? 'Tạm dừng đồng hồ' : 'Tiếp tục đồng hồ'}
         className={`game-access-button ${!isTimerRunning ? 'is-paused' : ''}`}
         disabled={awaitingStart}
-        onClick={() => { playSound('click'); isTimerRunning ? pauseTimer() : resumeTimer() }}
+        onClick={() => {
+          playSound('click')
+          if (isTimerRunning) pauseTimer()
+          else resumeTimer()
+        }}
         title={isTimerRunning ? 'Tạm dừng' : 'Tiếp tục'}
         type="button"
       >

@@ -23,6 +23,7 @@ export type GameIconName =
   | 'lock'
   | 'map'
   | 'money-stack'
+  | 'mute'
   | 'pause'
   | 'plane'
   | 'play'
@@ -36,6 +37,7 @@ export type GameIconName =
   | 'ticket'
   | 'trophy'
   | 'users'
+  | 'volume'
 
 interface GameIconProps extends SVGProps<SVGSVGElement> {
   name: GameIconName
@@ -222,6 +224,13 @@ function IconPaths({ name }: { name: GameIconName }) {
           <circle cx="11" cy="12.8" fill="currentColor" r="1.2" />
         </>
       )
+    case 'mute':
+      return (
+        <>
+          <path {...common} d="M3.5 9.5v5h3l4.5 4v-13l-4.5 4Z" />
+          <path {...common} d="m15.5 9.5 5 5M20.5 9.5l-5 5" />
+        </>
+      )
     case 'pause':
       return (
         <>
@@ -297,6 +306,13 @@ function IconPaths({ name }: { name: GameIconName }) {
         <>
           <circle {...common} cx="9" cy="9" r="3" />
           <path {...common} d="M3.8 19a5.2 5.2 0 0 1 10.4 0M15 7.2a2.8 2.8 0 0 1 0 5.5M16.4 14.5a4.7 4.7 0 0 1 3.8 4.5" />
+        </>
+      )
+    case 'volume':
+      return (
+        <>
+          <path {...common} d="M3.5 9.5v5h3l4.5 4v-13l-4.5 4Z" />
+          <path {...common} d="M15 9.2a4.2 4.2 0 0 1 0 5.6M17.6 6.9a7.4 7.4 0 0 1 0 10.2" />
         </>
       )
     default:

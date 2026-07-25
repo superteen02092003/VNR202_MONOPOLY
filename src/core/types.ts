@@ -341,6 +341,12 @@ export type GameEventType =
   | 'trivia-correct'
   | 'trivia-wrong'
   | 'card-drawn'
+  /* --- Sự kiện bổ sung cho hệ thống âm thanh --- */
+  | 'pass-start'
+  | 'escape-jail'
+  | 'teleport'
+  | 'shield-activate'
+  | 'cash-gained'
 
 export interface GameEvent {
   id: string

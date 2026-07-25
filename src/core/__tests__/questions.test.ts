@@ -58,18 +58,23 @@ describe('Vòng Hỏi Đáp', () => {
     const state = createTestGame()
 
     state.currentQuestion = QUESTIONS[0]
+    const cardsBefore = getPlayer(state, 'p1').cards.length
     const correct = resolveTrivia(state, QUESTIONS[0].answerIndex)
     expect(correct?.correct).toBe(true)
     expect(correct?.cardDrawn).toBe(true)
     expect(correct?.cardSaved || correct?.cardUsedImmediately).toBe(true)
-    expect(getPlayer(state, 'p1').cards.every((card) => card.effect === 'escape-jail')).toBe(true)
+    // Thẻ cần lựa chọn được lưu vào túi để tự dùng; Gói Kích Cầu thì dùng ngay.
+    if (correct?.cardSaved) {
+      expect(getPlayer(state, 'p1').cards.length).toBe(cardsBefore + 1)
+    }
     expect(getPlayer(state, 'p1').stats.correctAnswers).toBe(1)
 
     state.currentQuestion = QUESTIONS[1]
+    const cardsAfterCorrect = getPlayer(state, 'p1').cards.length
     const wrongIndex = (QUESTIONS[1].answerIndex + 1) % 4
     const wrong = resolveTrivia(state, wrongIndex)
     expect(wrong?.correct).toBe(false)
-    expect(getPlayer(state, 'p1').cards.every((card) => card.effect === 'escape-jail')).toBe(true)
+    expect(getPlayer(state, 'p1').cards.length).toBe(cardsAfterCorrect)
     expect(getPlayer(state, 'p1').stats.wrongAnswers).toBe(1)
   })
 
@@ -82,13 +87,13 @@ describe('Vòng Hỏi Đáp', () => {
     expect(state.triviaResult).toBe('timeout')
   })
 
-  it('túi đồ chỉ chứa tối đa 3 thẻ', () => {
+  it('túi đồ chỉ chứa tối đa 3 thẻ — thẻ dư được kích hoạt ngay thay vì mất', () => {
     const state = createTestGame()
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       state.currentQuestion = QUESTIONS[i]
       resolveTrivia(state, QUESTIONS[i].answerIndex)
     }
-    expect(getPlayer(state, 'p1').cards.every((card) => card.effect === 'escape-jail')).toBe(true)
+    expect(getPlayer(state, 'p1').cards.length).toBeLessThanOrEqual(3)
   })
 })

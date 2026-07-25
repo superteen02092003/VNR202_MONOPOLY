@@ -30,7 +30,10 @@ export interface DrawOptions {
 
 /**
  * Bốc 1 Thẻ Cơ hội theo trọng số.
- * Mọi thẻ được kích hoạt ngay; chỉ Vé Thông Hành được lưu để dùng khi Kẹt xe.
+ * Thẻ cần người chơi LỰA CHỌN (mục tiêu / thời điểm) được lưu vào túi để tự dùng
+ * ở Vòng Chiến thuật và chọn mục tiêu ngay trên bàn cờ. Chỉ Gói Kích Cầu (không
+ * có gì để chọn) là dùng ngay. Túi đầy thì thẻ được kích hoạt ngay với mục tiêu
+ * tự động để không bị mất.
  */
 export function drawCard(
   state: GameCore,
@@ -43,12 +46,18 @@ export function drawCard(
 
   if (!definition) return { card: null, bagFull: false, saved: false, usedImmediately: false, movedPlayer: false }
 
-  const shouldSave = definition.effect === 'escape-jail'
+  const bagFull = player.cards.length >= GAME_CONFIG.MAX_CARDS
+  const shouldSave = definition.effect !== 'stimulus' && !bagFull
 
   const card: CardInstance = { instanceId: nextId(state, 'card'), effect: definition.effect }
   if (shouldSave) {
     player.cards.push(card)
-    pushLog(state, 'card', `${player.name} rút được thẻ ${definition.name}.`, playerId)
+    pushLog(
+      state,
+      'card',
+      `${player.name} rút được thẻ ${definition.name} — đã lưu vào Túi Thẻ Cơ hội.`,
+      playerId,
+    )
     pushEvent(state, 'card-drawn', playerId)
     return { card, bagFull: false, saved: true, usedImmediately: false, movedPlayer: false }
   }
@@ -241,6 +250,7 @@ function applyCardEffect(
 
     case 'stimulus': {
       credit(state, playerId, GAME_CONFIG.STIMULUS_AMOUNT, 'gói kích cầu từ ngân sách')
+      pushEvent(state, 'cash-gained', playerId, { amount: GAME_CONFIG.STIMULUS_AMOUNT })
       return done()
     }
 
@@ -291,6 +301,7 @@ function applyCardEffect(
         `${getPropertyTile(target.tileId).name} được bảo hộ, chặn được một lần thâu tóm.`,
         playerId,
       )
+      pushEvent(state, 'shield-activate', playerId, { tileId: target.tileId })
       return done()
     }
 
